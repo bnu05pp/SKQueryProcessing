@@ -27,15 +27,15 @@ We have tested on this version on a machine with a 2 Ghz Core 2 Duo processor an
 In this project, we use three real-world RDF datasets, DBLP, Yago and DBPedia & QALD to test our method.
 
 ### DBLP
-[DBLP](http://dblp.uni-trier.de/) contains bibliographic information for computer science publications. We define five sample SK queries for DBLP. The queries are provided in the root directory. The dataset is so large that you can download [here](https://drive.google.com/file/d/0B0Auz4i0D5FYcGRBRS1BX1QwVGs/view?usp=sharing_eip&invite=CK6X0ZwO&ts=58bc201e).
+[DBLP](http://dblp.uni-trier.de/) contains bibliographic information for computer science publications. We define five sample SK queries for DBLP. The queries are provided in the root directory. You can download the dataset [here](https://drive.google.com/file/d/0B0Auz4i0D5FYcGRBRS1BX1QwVGs/view?usp=sharing_eip&invite=CK6X0ZwO&ts=58bc201e).
 
 ### Yago
-[Yago](http://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/yago/#c10444) extracts facts from Wikipedia and integrates them with the WordNet thesaurus. We define eight sample SK queries for Yago. The queries are also provided in the root directory. The dataset is so large that you can download [here]().
+[Yago](http://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/yago/#c10444) extracts facts from Wikipedia and integrates them with the WordNet thesaurus. We define eight sample SK queries for Yago. The queries are also provided in the root directory. You can download the dataset [here]().
 
 
 ### DBPedia & QALD. 
 [DBPedia](http://wiki.dbpedia.org/) is an RDF dataset extracted from Wikipedia.
-[QALD](http://qald.sebastianwalter.org/index.php?x=publications&q=2) is an evaluation campaign on question answering over linked data. In this project, we only select 10 non-aggregation complex queries from QALD for evaluation. Note that, the DBPedia dataset is so large that you can download it [here](http://downloads.dbpedia.org/3.7/en/).
+[QALD](http://qald.sebastianwalter.org/index.php?x=publications&q=2) is an evaluation campaign on question answering over linked data. In this project, we only select 10 non-aggregation complex queries from QALD for evaluation. You can download the dataset [here] (http://downloads.dbpedia.org/3.7/en/).
 
 Notice: 
 

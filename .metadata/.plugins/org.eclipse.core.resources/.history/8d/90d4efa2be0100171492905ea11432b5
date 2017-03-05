@@ -54,22 +54,22 @@ public class CreateIndex {
 			if (!file.exists()) {
 				file.mkdirs();
 			}
-			File file1 = new File(args[0] + "/DistanceIndex");
+			File file1 = new File(args[0] + "\\DistanceIndex");
 			if (!file1.exists()) {
 				file1.mkdirs();
 			}
-			File file2 = new File(args[0] + "/LuceneIndex");
+			File file2 = new File(args[0] + "\\LuceneIndex");
 			if (!file2.exists()) {
 				file2.mkdirs();
 			}
-			File file3 = new File(args[0] + "/StructuralIndex");
+			File file3 = new File(args[0] + "\\StructuralIndex");
 			if (!file3.exists()) {
 				file3.mkdirs();
 			}
 
 			EnvironmentConfig envConfig1 = new EnvironmentConfig();
 			envConfig1.setAllowCreate(true);
-			Environment myDbEnvironment1 = new Environment(new File(args[0] + "/DistanceIndex"), envConfig1);
+			Environment myDbEnvironment1 = new Environment(new File(args[0] + "\\DistanceIndex"), envConfig1);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig1 = new DatabaseConfig();
@@ -78,7 +78,7 @@ public class CreateIndex {
 
 			EnvironmentConfig envConfig2 = new EnvironmentConfig();
 			envConfig2.setAllowCreate(true);
-			Environment myDbEnvironment2 = new Environment(new File(args[0] + "/StructuralIndex"), envConfig2);
+			Environment myDbEnvironment2 = new Environment(new File(args[0] + "\\StructuralIndex"), envConfig2);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig2 = new DatabaseConfig();
@@ -175,7 +175,7 @@ public class CreateIndex {
 			NodeNum = cur_id;
 			br.close();
 
-			PrintStream out_entity = new PrintStream(new File(args[0] + "/entity_id_map.txt"));
+			PrintStream out_entity = new PrintStream(new File(args[0] + "\\entity_id_map.txt"));
 			Iterator<Entry<String, Integer>> iter32 = EntityIDMap.entrySet().iterator();
 
 			count = 0;
@@ -191,7 +191,7 @@ public class CreateIndex {
 			out_entity.flush();
 			out_entity.close();
 
-			PrintStream out_p_weight = new PrintStream(new File(args[0] + "/p_weight.txt"));
+			PrintStream out_p_weight = new PrintStream(new File(args[0] + "\\p_weight.txt"));
 			Iterator<Entry<Integer, TreeSet<Integer>>> iter82 = predicateSalienceBackwardMap.entrySet().iterator();
 			int item_id = 0;
 			TreeMap<Integer, ItemInfo> IDItemMap = new TreeMap<Integer, ItemInfo>();
@@ -232,8 +232,8 @@ public class CreateIndex {
 			out_p_weight.flush();
 			out_p_weight.close();
 
-			PrintStream out_adjacent_list = new PrintStream(new File(args[0] + "/graph_adjacent_list.txt"));
-			PrintStream out_transaction = new PrintStream(new File(args[0] + "/multi_transaction_set.txt"));
+			PrintStream out_adjacent_list = new PrintStream(new File(args[0] + "\\graph_adjacent_list.txt"));
+			PrintStream out_transaction = new PrintStream(new File(args[0] + "\\multi_transaction_set.txt"));
 
 			NeighborInfo[][] adjacentList = new NeighborInfo[NodeNum][];
 
@@ -333,8 +333,8 @@ public class CreateIndex {
 			Date starIndexStartTime = new Date();
 			int support_delta = NodeNum / 100;
 
-			Process prc = Runtime.getRuntime().exec("cmd.exe /c start mine -s-" + support_delta + " " + args[0]
-					+ "/multi_transaction_set.txt " + args[0] + "/fp.out");
+			Process prc = Runtime.getRuntime().exec("cmd.exe /c start mining.exe -s-" + support_delta + " " + args[0]
+					+ "\\multi_transaction_set.txt " + args[0] + "\\fp.out");
 
 			BufferedReader br_prc = new BufferedReader(new InputStreamReader(prc.getInputStream()));
 			String line = null;
@@ -344,7 +344,7 @@ public class CreateIndex {
 
 			prc.waitFor();
 
-			InputStream in70 = new FileInputStream(new File(args[0] + "/fp.out"));
+			InputStream in70 = new FileInputStream(new File(args[0] + "\\fp.out"));
 			Reader inr70 = new InputStreamReader(in70);
 			BufferedReader br70 = new BufferedReader(inr70);
 			TreeSet<Integer> frequentPropertySet = new TreeSet<Integer>();
@@ -539,7 +539,7 @@ public class CreateIndex {
 			}
 
 			// PrintStream out_fp_list = new PrintStream(new File(args[0]
-			// + "/fp_list.txt"));
+			// + "\\fp_list.txt"));
 			for (int i = 0; i < fpList.size(); i++) {
 				// out_fp_list.println(fpList.get(i).FPStr + "\t"
 				// + fpList.get(i).MatchingList.toString());
@@ -557,7 +557,7 @@ public class CreateIndex {
 			System.out.println("starting to " + "genenerate the inverted index...");
 			Date starIndexEndTime = new Date();
 
-			File indexDir = new File(args[0] + "/LuceneIndex");
+			File indexDir = new File(args[0] + "\\LuceneIndex");
 			Analyzer luceneAnalyzer = new StandardAnalyzer();
 			IndexWriter indexWriter = new IndexWriter(indexDir, luceneAnalyzer, true);
 
@@ -606,10 +606,10 @@ public class CreateIndex {
 			int[] candidateDist = new int[NodeNum];
 			TreeSet<HeapNode> candidate = new TreeSet<HeapNode>();
 
-			PrintStream out_pivot = new PrintStream(new File(args[0] + "/pivot.txt"));
+			PrintStream out_pivot = new PrintStream(new File(args[0] + "\\pivot.txt"));
 			for (int j = 0; j < PivotNum; j++) {
 				// PrintStream out = new PrintStream(new File(args[0]
-				// + "/Pivots/" + pivotArr[pivotArr.length - 1 - j].key));
+				// + "\\Pivots\\" + pivotArr[pivotArr.length - 1 - j].key));
 
 				int sourceID = pivotArr[pivotArr.length - 1 - j].key;
 				out_pivot.println(
