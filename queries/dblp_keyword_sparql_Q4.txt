@@ -1,0 +1,2 @@
+Jian Pei; Wen Jin
+select * where	{ ?paper <http://swrc.ontoware.org/ontology#year> "2005" . ?paper <http://swrc.ontoware.org/ontology#booktitle> "@@VLDB" . ?paper <http://purl.org/dc/elements/1.1/creator> ?person2 .	}

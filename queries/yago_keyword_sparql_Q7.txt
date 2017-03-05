@@ -1,0 +1,2 @@
+Eagle Colorado
+select * where	{ ?p	<http://mpii.de/yago/resource/bornIn>	?c . ?c	<http://mpii.de/yago/resource/locatedIn>	?s . ?p	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://mpii.de/yago/resource/wikicategory_Los_Angeles_Lakers_players> .	}

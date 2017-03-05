@@ -1,0 +1,2 @@
+People's National Congress
+select * where	{ ?p	<http://mpii.de/yago/resource/graduatedFrom>	?u . ?u	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://mpii.de/yago/resource/wikicategory_Universities_and_colleges_in_Beijing>	. }

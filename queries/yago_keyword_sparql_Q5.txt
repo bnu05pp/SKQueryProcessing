@@ -1,0 +1,2 @@
+Kissinger
+select * where	{ ?p	<http://mpii.de/yago/resource/isAffiliatedTo>	?u . ?u	<http://www.w3.org/2000/01/rdf-schema#label>	"Communist Party of China" . ?p	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://mpii.de/yago/resource/wikicategory_Leaders_of_the_Communist_Party_of_China>	. }

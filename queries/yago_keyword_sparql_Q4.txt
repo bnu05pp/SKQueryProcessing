@@ -1,0 +1,2 @@
+Peking
+select * where	{ ?p	<http://mpii.de/yago/resource/actedIn>	?f1 . ?p	<http://mpii.de/yago/resource/created>	?f2 . ?f1	rdf:type	<http://mpii.de/yago/resource/wikicategory_Comedy_films> . ?f2	<http://mpii.de/yago/resource/hasProductionLanguage>	<http://mpii.de/yago/resource/English_language>	. }

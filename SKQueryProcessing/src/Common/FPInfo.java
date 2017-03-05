@@ -1,0 +1,35 @@
+package Common;
+
+import java.util.ArrayList;
+import java.util.TreeSet;
+
+public class FPInfo implements Comparable<FPInfo> {
+	public String FPStr;
+	public int Frequency;
+	public ArrayList<Integer> MatchingList;
+
+	public FPInfo(String fPStr, int frequency) {
+		super();
+		FPStr = fPStr;
+		MatchingList = new ArrayList<Integer>();
+		Frequency = frequency;
+	}
+
+	@Override
+	public String toString() {
+		return "FPInfo [FPStr=" + FPStr + ", Frequency=" + Frequency
+				+ ", MatchingList=" + MatchingList + "]";
+	}
+
+	@Override
+	public int compareTo(FPInfo o) {
+		return FPStr.compareTo(FPStr);
+	}
+
+	public boolean isSubFP(FPInfo o) {
+		if (this.FPStr.contains(o.FPStr) && o.Frequency - this.Frequency < 10) {
+			return true;
+		}
+		return false;
+	}
+}

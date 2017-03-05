@@ -1,0 +1,2 @@
+Normandy Invasion
+select * where	{ ?p	<http://mpii.de/yago/resource/hasChild>	?p1 . ?p	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://mpii.de/yago/resource/wikicategory_United_States_Army_generals>	. }
