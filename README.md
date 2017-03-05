@@ -22,7 +22,7 @@ The file of the SK query consists of two lines. The first line is keywords, whic
 
 
 ## Evaluation
-We have tested on this version on a machine with a 2 Ghz Core 2 Duo processor and 64G RAM memory running Windows Server2008. All the codes are implemented in Java. We used Berkeley DB 5.0.84 to store the indices, Lucene 2.9.4 to build inverted index for keyword search and Sesame 2.8.0 to parse SPARQL queries. The above jars are provided in the root directory.
+We have tested on this version on a machine with a 2 Ghz Core 2 Duo processor and 64G RAM memory. All the codes are implemented in Java. We used Berkeley DB 5.0.84 to store the indices, Lucene 2.9.4 to build inverted index for keyword search and Sesame 2.8.0 to parse SPARQL queries. The above jars are provided in the root directory.
 
 In this project, we use three real-world RDF datasets, DBLP, Yago and DBPedia & QALD to test our method.
 
