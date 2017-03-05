@@ -8,7 +8,6 @@ INDEX VERSION 1.129+C:\Users\Administrator\Documents\GitHub\SKQueryProcessing\.m
 1627627164.index
 2451523530.index
 3230425108.index
-2704529498.index
 2312948647.index
 1824883167.index
 781926066.index

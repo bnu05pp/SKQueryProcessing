@@ -66,9 +66,9 @@ public class QueryProcessing {
 
 	/**
 	 * @param args
-	 *            閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓楗鸿揪鎷烽敓鏂ゆ嫹涓�閿熸枻鎷烽敓鏂ゆ嫹閿熸帴纰夋嫹SPARQL閿熸枻鎷疯閿熸枻鎷烽敓鏂ゆ嫹keyword_sparql_Q3閿熸枻鎷风ず閿熸枻鎷烽敓鏂ゆ嫹
-	 *            鐒堕敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹Dijkstra閿熷娉曢敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熺耽eyword閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷疯矾閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷�
-	 *            閿熸枻鎷烽敓鐭鎷烽敓鏂ゆ嫹閿熺Ц鏂ゆ嫹閿燂拷
+	 *            锟斤拷锟斤拷锟斤拷锟饺达拷锟斤拷一锟斤拷锟斤拷锟接碉拷SPARQL锟斤拷询锟斤拷锟斤拷keyword_sparql_Q3锟斤拷示锟斤拷锟斤拷
+	 *            然锟斤拷锟斤拷锟斤拷Dijkstra锟姐法锟斤拷锟斤拷锟斤拷锟絢eyword锟斤拷锟斤拷锟斤拷路锟斤拷锟斤拷锟斤拷
+	 *            锟斤拷锟矫碉拷锟斤拷锟秸斤拷锟�
 	 */
 	public static void main(String[] args) {
 		try {
@@ -80,7 +80,7 @@ public class QueryProcessing {
 
 			EnvironmentConfig envConfig1 = new EnvironmentConfig();
 			envConfig1.setAllowCreate(true);
-			Environment myDbEnvironment1 = new Environment(new File(args[0] + "/DistanceIndex"), envConfig1);
+			Environment myDbEnvironment1 = new Environment(new File(args[0] + "\\DistanceIndex"), envConfig1);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig1 = new DatabaseConfig();
@@ -89,7 +89,7 @@ public class QueryProcessing {
 
 			EnvironmentConfig envConfig2 = new EnvironmentConfig();
 			envConfig2.setAllowCreate(true);
-			Environment myDbEnvironment2 = new Environment(new File(args[0] + "/StructuralIndex"), envConfig2);
+			Environment myDbEnvironment2 = new Environment(new File(args[0] + "\\StructuralIndex"), envConfig2);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig2 = new DatabaseConfig();
@@ -98,10 +98,10 @@ public class QueryProcessing {
 
 			System.out.println("loading Entity ID Map...");
 			HashMap<Integer, String> IDEntityMap = null;
-			HashMap<String, Integer> EntityIDMap = CreateIDEntityMap(args[0] + "/entity_id_map.txt", IDEntityMap);
+			HashMap<String, Integer> EntityIDMap = CreateIDEntityMap(args[0] + "\\entity_id_map.txt", IDEntityMap);
 
 			System.out.println("loading RDF graph...");
-			InputStream in = new FileInputStream(new File(args[0] + "/graph_adjacent_list.txt"));
+			InputStream in = new FileInputStream(new File(args[0] + "\\graph_adjacent_list.txt"));
 			Reader inr = new InputStreamReader(in);
 			BufferedReader br = new BufferedReader(inr);
 
@@ -139,7 +139,7 @@ public class QueryProcessing {
 			br.close();
 
 			System.out.println("loading distance-based index ...");
-			InputStream in175 = new FileInputStream(new File(args[0] + "/pivot.txt"));
+			InputStream in175 = new FileInputStream(new File(args[0] + "\\pivot.txt"));
 			Reader inr175 = new InputStreamReader(in175);
 			BufferedReader br175 = new BufferedReader(inr175);
 
@@ -177,7 +177,7 @@ public class QueryProcessing {
 			br175.close();
 
 			System.out.println("loading structural index ...");
-			InputStream in650 = new FileInputStream(new File(args[0] + "/p_weight.txt"));
+			InputStream in650 = new FileInputStream(new File(args[0] + "\\p_weight.txt"));
 			Reader inr650 = new InputStreamReader(in650);
 			BufferedReader br650 = new BufferedReader(inr650);
 
@@ -213,7 +213,7 @@ public class QueryProcessing {
 
 			br650.close();
 
-			InputStream in70 = new FileInputStream(new File(args[0] + "/fp.out"));
+			InputStream in70 = new FileInputStream(new File(args[0] + "\\fp.out"));
 			Reader inr70 = new InputStreamReader(in70);
 			BufferedReader br70 = new BufferedReader(inr70);
 			TreeSet<Integer> frequentPropertySet = new TreeSet<Integer>();
@@ -290,7 +290,7 @@ public class QueryProcessing {
 			System.out.println("=========================" + "SPTIndex=========================");
 			Date currentTime1 = new Date();
 
-			// 閿熸枻鎷峰彇Query閿熷彨纰夋嫹keyword閿熸枻鎷烽敓琛楋綇鎷烽敓鏂ゆ嫹閿熸彮纰夋嫹閿熸枻鎷烽�夐敓鏂ゆ嫹
+			// 锟斤拷取Query锟叫碉拷keyword锟斤拷锟街ｏ拷锟斤拷锟揭碉拷锟斤拷选锟斤拷
 			str = br1.readLine();
 			TermArr = str.split(";");
 			int[][] visited = new int[TermArr.length][NodeNum];
@@ -314,7 +314,7 @@ public class QueryProcessing {
 
 				Hits hits = null;
 				Query query = null;
-				IndexSearcher searcher = new IndexSearcher(args[0] + "/LuceneIndex");
+				IndexSearcher searcher = new IndexSearcher(args[0] + "\\LuceneIndex");
 				Analyzer analyzer = new StandardAnalyzer();
 				try {
 					QueryParser qp = new QueryParser("body", analyzer);
@@ -414,9 +414,9 @@ public class QueryProcessing {
 			Date currentTime2 = new Date();
 			System.out.println(currentTime2.getTime() - currentTime1.getTime());
 
-			// 閿熸枻鎷峰彇Query閿熷彨纰夋嫹SPARQL閿熸枻鎷烽敓琛楋綇鎷烽敓鏂ゆ嫹閿熸彮纰夋嫹閿熸枻鎷烽�夐敓鏂ゆ嫹
-			// 閿熻姤瀹歋PARQL閿熸枻鎷蜂竴閿熸垝璇濋敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷峰嵏閿熸枻鎷烽敓鏂ゆ嫹鐩撮敓鏂ゆ嫹閿燂拷
-			// 閿熸枻鎷烽敓鏂ゆ嫹閿熺獤顖ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熺嫛纭锋嫹閿熸枻鎷烽敓鏂ゆ嫹
+			// 锟斤拷取Query锟叫碉拷SPARQL锟斤拷锟街ｏ拷锟斤拷锟揭碉拷锟斤拷选锟斤拷
+			// 锟芥定SPARQL锟斤拷一锟戒话锟斤拷锟斤拷锟斤拷锟斤拷卸锟斤拷锟斤拷直锟斤拷锟�
+			// 锟斤拷锟斤拷锟窖拷锟斤拷锟斤拷锟狡硷拷锟斤拷锟斤拷
 			str = br1.readLine();
 			ArrayList<String> tpList = ParseSPARQL(str);
 
@@ -479,7 +479,7 @@ public class QueryProcessing {
 					} else {
 						curList = new ArrayList<String>();
 					}
-					// 0閿熸枻鎷�?閿熸枻鎷蜂负閿熸枻鎷疯閿熼叺顭掓嫹閿熺掸redicate鎸囬敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿燂拷
+					// 0锟斤拷?锟斤拷为锟斤拷说锟酵拷锟絧redicate指锟斤拷锟斤拷锟斤拷锟�
 					curList.add("0\t" + curPredicateID + "\t" + TermArr[2]);
 					QueryAdjacentList.put(TermArr[0], curList);
 
@@ -488,7 +488,7 @@ public class QueryProcessing {
 					} else {
 						curList = new ArrayList<String>();
 					}
-					// 1閿熸枻鎷�?閿熸枻鎷蜂负閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓閰殿煉鎷烽敓绲edicate鎸囬敓鏂ゆ嫹璇撮敓锟�
+					// 1锟斤拷?锟斤拷为锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟酵拷锟絧redicate指锟斤拷说锟�
 					curList.add("1\t" + curPredicateID + "\t" + TermArr[0]);
 					QueryAdjacentList.put(TermArr[2], curList);
 
@@ -555,7 +555,7 @@ public class QueryProcessing {
 
 			}
 
-			// 閫夊彇selectivity閿熸枻鎷峰彥璋嬮敓鏂ゆ嫹閿燂拷
+			// 选取selectivity锟斤拷叩谋锟斤拷锟�
 			System.out.print("candidates number:");
 
 			Iterator<VariableInfo> iter2 = VariableInfoSet.iterator();
@@ -592,8 +592,8 @@ public class QueryProcessing {
 					for (int i = 0; i < curList.size(); i++) {
 						curEdgeStr = curList.get(i);
 						TermArr = curEdgeStr.split("\t");
-						// 閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹鍊间负-1閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鍓挎唻鎷烽敓鏂ゆ嫹
-						// 閿熸枻鎷烽敓娲ヨ繑鍥炵鎷峰墠閿熸枻鎷烽敓鎻紮鎷烽敓杞夸紮鎷烽敓锟�
+						// 锟斤拷锟斤拷锟斤拷锟斤拷值为-1锟斤拷锟斤拷锟斤拷锟剿憋拷锟斤拷
+						// 锟斤拷锟津返回碉拷前锟斤拷锟揭伙拷锟轿伙拷锟�
 						cur_match_pos = SearchInArray(variableArr, TermArr[2]);
 						if (cur_match_pos != -1) {
 							queryQueue.add(TermArr[2]);
@@ -606,9 +606,9 @@ public class QueryProcessing {
 				}
 			}
 
-			// 閿熺即鐚存嫹閫夐敓鏂ゆ嫹閿熸枻鎷锋嫾閿熸帴绛规嫹閿熸枻鎷烽敓绉告枻鎷蜂箣閿熸枻鎷蜂竴閿熸枻鎷�
-			// 閿熸枻鎷峰偦閿熸彮浼欐嫹閿熸枻鎷烽敓鏂ゆ嫹閿燂拷
-			// 閿熸枻鎷烽敓鏂ゆ嫹閿熻姤鍒伴敓鏂ゆ嫹閿熺Ц浼欐嫹閿燂拷
+			// 锟缴猴拷选锟斤拷锟斤拷拼锟接筹拷锟斤拷锟秸斤拷之锟斤拷一锟斤拷
+			// 锟斤拷傻锟揭伙拷锟斤拷锟斤拷锟�
+			// 锟斤拷锟斤拷锟芥到锟斤拷锟秸伙拷锟�
 			TreeSet<ResultInfo> resultSet = new TreeSet<ResultInfo>();
 			ResultInfo tempResultInfo = null;
 			ArrayList<ResultInfo> tempResultInfoList = new ArrayList<ResultInfo>();
@@ -632,7 +632,7 @@ public class QueryProcessing {
 			Collections.sort(tempResultInfoList);
 			LinkedList<ResultInfo> resultStack = new LinkedList<ResultInfo>(tempResultInfoList);
 
-			// 閿熸枻鎷峰閿熸枻鎷烽敓鏂ゆ嫹鐘舵�侀敓绉哥》鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷�
+			// 锟斤拷始锟斤拷锟斤拷状态锟秸硷拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
 			int next_match_pos = 0, cur_socre_bound = Integer.MAX_VALUE;
 			int candidate_count = resultStack.size();
 			while (resultStack.size() != 0 && queryEdgeList.size() != 0) {
