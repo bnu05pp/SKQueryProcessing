@@ -30,7 +30,7 @@ In this project, we use three real-world RDF datasets, DBLP, Yago and DBPedia & 
 [DBLP](http://dblp.uni-trier.de/) contains bibliographic information for computer science publications. We define five sample SK queries for DBLP. The queries are provided in the root directory. You can download the dataset [here](https://drive.google.com/file/d/0B0Auz4i0D5FYcGRBRS1BX1QwVGs/view?usp=sharing_eip&invite=CK6X0ZwO&ts=58bc201e).
 
 ### Yago
-[Yago](http://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/yago/#c10444) extracts facts from Wikipedia and integrates them with the WordNet thesaurus. We define eight sample SK queries for Yago. The queries are also provided in the root directory. You can download the dataset [here]().
+[Yago](http://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/yago/#c10444) extracts facts from Wikipedia and integrates them with the WordNet thesaurus. We define eight sample SK queries for Yago. The queries are also provided in the root directory. You can download the dataset [here](https://drive.google.com/open?id=0B0Auz4i0D5FYNE1mSTZwU2MxN3M).
 
 
 ### DBPedia & QALD. 
