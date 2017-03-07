@@ -35,7 +35,7 @@ In this project, we use three real-world RDF datasets, DBLP, Yago and DBPedia & 
 
 ### DBPedia & QALD. 
 [DBPedia](http://wiki.dbpedia.org/) is an RDF dataset extracted from Wikipedia.
-[QALD](http://qald.sebastianwalter.org/index.php?x=publications&q=2) is an evaluation campaign on question answering over linked data. In this project, we only select 10 non-aggregation complex queries from QALD for evaluation. You can download the dataset [here] (http://downloads.dbpedia.org/3.7/en/).
+[QALD](http://qald.sebastianwalter.org/index.php?x=publications&q=2) is an evaluation campaign on question answering over linked data. In this project, we only select 10 non-aggregation complex queries from QALD for evaluation. You can download the dataset [here] (https://drive.google.com/open?id=0B0Auz4i0D5FYNE1mSTZwU2MxN3M).
 
 Notice: 
 
