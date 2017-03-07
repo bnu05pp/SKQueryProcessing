@@ -333,7 +333,7 @@ public class CreateIndex {
 			Date starIndexStartTime = new Date();
 			int support_delta = NodeNum / 100;
 
-			Process prc = Runtime.getRuntime().exec("./mine -s-" + support_delta + " " + args[0]
+			Process prc = Runtime.getRuntime().exec("cmd.exe /c start mine -s-" + support_delta + " " + args[0]
 					+ "/multi_transaction_set.txt " + args[0] + "/fp.out");
 
 			BufferedReader br_prc = new BufferedReader(new InputStreamReader(prc.getInputStream()));
