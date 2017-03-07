@@ -696,9 +696,9 @@ public class CreateIndex {
 			}
 
 			Date pivotEndTime = new Date();
-			System.out.println("distanced-based index take " + (pivotEndTime.getTime() - pivotStartTime.getTime()) + " ms.");
+			System.out.println("pivot index take " + (pivotEndTime.getTime() - pivotStartTime.getTime()) + " ms.");
 			System.out
-					.println("structural index take " + (starIndexEndTime.getTime() - starIndexStartTime.getTime()) + " ms.");
+					.println("star index take " + (starIndexEndTime.getTime() - starIndexStartTime.getTime()) + " ms.");
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
