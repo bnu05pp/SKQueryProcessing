@@ -211,7 +211,7 @@ public class CreateIndex {
 
 				s1.addAll(s2);
 				out_p_weight.println(
-						IDPredicateMap.get(p_id) + " " + p_id + " " + (s1.size() * amplifier) / (adjacentList1.size()));
+						IDPredicateMap.get(p_id) + " " + p_id + " " + (s1.size()) / (adjacentList1.size() / amplifier));
 				predicateSalienceForwardMap.put(p_id, s1);
 
 				if (!LabelItemPosMap.containsKey(p_id)) {
@@ -333,7 +333,7 @@ public class CreateIndex {
 			Date starIndexStartTime = new Date();
 			int support_delta = NodeNum / 100;
 			if (NodeNum < 1000) {
-				support_delta = NodeNum / 10;
+				support_delta = NodeNum / 100;
 			}
 
 			Process prc = Runtime.getRuntime().exec(

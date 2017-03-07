@@ -211,7 +211,7 @@ public class CreateIndex {
 
 				s1.addAll(s2);
 				out_p_weight.println(
-						IDPredicateMap.get(p_id) + " " + p_id + " " + (s1.size() * amplifier) / (adjacentList1.size()));
+						IDPredicateMap.get(p_id) + " " + p_id + " " + (s1.size()) / (adjacentList1.size() / amplifier));
 				predicateSalienceForwardMap.put(p_id, s1);
 
 				if (!LabelItemPosMap.containsKey(p_id)) {
