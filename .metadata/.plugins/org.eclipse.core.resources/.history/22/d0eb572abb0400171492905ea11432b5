@@ -59,6 +59,11 @@ import Common.ResultInfo;
 
 public class QueryProcessing {
 
+	static final int updateNum = 2;
+	static int PivotNum = 500;
+	static int TopKNum = 20;
+	static int PatternNum = 4;
+
 	/**
 	 * @param args
 	 *            閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓楗鸿揪鎷烽敓鏂ゆ嫹涓�閿熸枻鎷烽敓鏂ゆ嫹閿熸帴纰夋嫹SPARQL閿熸枻鎷疯閿熸枻鎷烽敓鏂ゆ嫹keyword_sparql_Q3閿熸枻鎷风ず閿熸枻鎷烽敓鏂ゆ嫹
@@ -70,8 +75,6 @@ public class QueryProcessing {
 			String str = "";
 			int cur_id = 0;
 			String[] TermArr, TermArr1;
-
-			int TopKNum = Integer.valueOf(args[2]);
 
 			Date loadingStartTime = new Date();
 
@@ -103,7 +106,6 @@ public class QueryProcessing {
 			BufferedReader br = new BufferedReader(inr);
 
 			int neighbor_id = 0, label_id = 0, NodeNum = 0;
-			int updateNum = 2;
 
 			str = br.readLine();
 			NodeNum = Integer.valueOf(str);
@@ -729,8 +731,8 @@ public class QueryProcessing {
 				System.out.println();
 			}
 
-			// System.out.println("candidate count:\t" + candidate_count);
-			// System.out.println("keyword count:\t" + keyword_count);
+			System.out.println("candidate count:\t" + candidate_count);
+			System.out.println("keyword count:\t" + keyword_count);
 
 			if (myDatabase1 != null) {
 				myDatabase1.close();

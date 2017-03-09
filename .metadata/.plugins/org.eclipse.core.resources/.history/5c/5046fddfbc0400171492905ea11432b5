@@ -729,8 +729,8 @@ public class QueryProcessing {
 				System.out.println();
 			}
 
-			// System.out.println("candidate count:\t" + candidate_count);
-			// System.out.println("keyword count:\t" + keyword_count);
+			System.out.println("candidate count:\t" + candidate_count);
+			System.out.println("keyword count:\t" + keyword_count);
 
 			if (myDatabase1 != null) {
 				myDatabase1.close();

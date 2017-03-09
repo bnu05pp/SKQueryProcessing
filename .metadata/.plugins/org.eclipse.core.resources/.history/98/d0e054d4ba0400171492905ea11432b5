@@ -255,9 +255,8 @@ public class CreateIndex {
 
 					out_adjacent_list.print(curNeighborInfo.NeighborID + " ");
 					out_adjacent_list.print(curNeighborInfo.Label + " ");
-					double tmp_weight = ((predicateSalienceForwardMap.get(curNeighborInfo.Label).size()) * 1.0)
-							/ (adjacentList1.size());
-					curNeighborInfo.Distance = (int) (tmp_weight * amplifier);
+					curNeighborInfo.Distance = (predicateSalienceForwardMap.get(curNeighborInfo.Label).size())
+							/ (adjacentList1.size() / amplifier);
 					out_adjacent_list.print(curNeighborInfo.Distance + " ");
 					out_adjacent_list.print(curNeighborInfo.Direction + " ");
 					adjacentList[cur_id][i] = curNeighborInfo;

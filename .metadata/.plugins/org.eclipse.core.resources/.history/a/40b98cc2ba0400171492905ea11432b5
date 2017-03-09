@@ -41,6 +41,7 @@ import Common.HeapNode;
 
 public class CreateIndex {
 
+	static int PivotNum = 500;
 	static int amplifier = 1000000;
 
 	public static void main(String[] args) {
@@ -48,7 +49,6 @@ public class CreateIndex {
 			String str = "";
 			int count = 0;
 			String[] TermArr;
-			int PivotNum = Integer.valueOf(args[2]);
 
 			File file = new File(args[0]);
 			if (!file.exists()) {
@@ -255,9 +255,8 @@ public class CreateIndex {
 
 					out_adjacent_list.print(curNeighborInfo.NeighborID + " ");
 					out_adjacent_list.print(curNeighborInfo.Label + " ");
-					double tmp_weight = ((predicateSalienceForwardMap.get(curNeighborInfo.Label).size()) * 1.0)
-							/ (adjacentList1.size());
-					curNeighborInfo.Distance = (int) (tmp_weight * amplifier);
+					curNeighborInfo.Distance = (predicateSalienceForwardMap.get(curNeighborInfo.Label).size())
+							/ (adjacentList1.size() / amplifier);
 					out_adjacent_list.print(curNeighborInfo.Distance + " ");
 					out_adjacent_list.print(curNeighborInfo.Direction + " ");
 					adjacentList[cur_id][i] = curNeighborInfo;

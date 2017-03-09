@@ -70,8 +70,8 @@ public class QueryProcessing {
 			String str = "";
 			int cur_id = 0;
 			String[] TermArr, TermArr1;
-
-			int TopKNum = Integer.valueOf(args[2]);
+			int updateNum = 2;
+			int TopKNum = Integer.valueOf(args[1]);
 
 			Date loadingStartTime = new Date();
 
@@ -103,7 +103,6 @@ public class QueryProcessing {
 			BufferedReader br = new BufferedReader(inr);
 
 			int neighbor_id = 0, label_id = 0, NodeNum = 0;
-			int updateNum = 2;
 
 			str = br.readLine();
 			NodeNum = Integer.valueOf(str);
@@ -729,8 +728,8 @@ public class QueryProcessing {
 				System.out.println();
 			}
 
-			// System.out.println("candidate count:\t" + candidate_count);
-			// System.out.println("keyword count:\t" + keyword_count);
+			System.out.println("candidate count:\t" + candidate_count);
+			System.out.println("keyword count:\t" + keyword_count);
 
 			if (myDatabase1 != null) {
 				myDatabase1.close();

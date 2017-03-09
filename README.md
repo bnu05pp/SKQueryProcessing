@@ -11,12 +11,12 @@ This is used to load RDF datasets and build indices for it.
 
 The datasets should be in RDF triple format. The subject and predicate of each triple should be separated by the space, and the predicate and object of each triple should also be separated by the space.
 
-There are two parameters for this program. The first parameter is the path that will store the indices, and the second parameter is the path where the RDF dataset is stored.
+There are three parameters for this program. The first parameter is the path that will store the indices, the second parameter is the path where the RDF dataset is stored and the third one is the number of pivots.
 
 ###2. QueryProcessing.java
 This is used to processs the SK queries. 
 
-There are two parameters for this program. The first parameter is the path that will store the indices, and the second parameter is the path where the SK query is stored.
+There are also three parameters for this program. The first parameter is the path that will store the indices, the second parameter is the path where the SK query is stored and the third one is the number of results returned.
 
 The file of the SK query consists of two lines. The first line is keywords, which are separated by the semicolons. The second line is a SPARQL query.
 
