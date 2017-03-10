@@ -18,11 +18,11 @@ This is used to processs the SK queries.
 
 There are also three parameters for this program. The first parameter is the path that will store the indices, the second parameter is the path where the SK query is stored and the third one is the number of results returned.
 
-The file of the SK query consists of two lines. The first line is keywords, which are separated by the semicolons. The second line is a SPARQL query.
+The file of the SK query consists of two lines. The first line is keywords, which are separated by the semicolons. The second line is a SPARQL query. Here, we assume that the SPARQL is a BGP(Basic Graph Pattern).
 
 
 ## Evaluation
-We have tested on this version on a machine with a 2 Ghz Core 2 Duo processor and 64G RAM memory. All the codes are implemented in Java. We used Berkeley DB 5.0.84 to store the indices, Lucene 2.9.4 to build inverted index for keyword search and Sesame 2.8.0 to parse SPARQL queries. The above jars are provided in the root directory. Furthermore, we use an executable program, named `mine`, to find out frequent patterns. The executable program is in the root directory.You need put this executable program into the root directory of you project and change its permission to run.
+We have tested on this version on a machine with a 2 Ghz Core 2 Duo processor and 64G RAM memory. All the codes are implemented in Java. We used Berkeley DB 5.0.84 to store the indices, Lucene 2.9.4 to build inverted index for keyword search and jena 3.0.0 to parse SPARQL queries. The above jars are provided in the root directory. Furthermore, we use an executable program, named `mine`, to find out frequent patterns. The executable program is in the root directory.You need put this executable program into the root directory of you project and change its permission to run.
 
 In this project, we use three real-world RDF datasets, DBLP, Yago and DBPedia & QALD to test our method.
 

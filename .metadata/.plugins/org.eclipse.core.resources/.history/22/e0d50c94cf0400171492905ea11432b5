@@ -29,10 +29,6 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.syntax.Element;
-import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.queryParser.ParseException;
@@ -40,6 +36,11 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Hits;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.algebra.StatementPattern;
+import org.openrdf.query.algebra.helpers.StatementPatternCollector;
+import org.openrdf.query.parser.ParsedQuery;
+import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
@@ -58,15 +59,11 @@ import Common.ResultInfo;
 
 public class QueryProcessing {
 
-	static final int updateNum = 2;
-	static int PivotNum = 500;
-	static int TopKNum = 20;
-	static int PatternNum = 4;
-
 	/**
 	 * @param args
-	 *            �������ȴ���һ�����ӵ�SPARQL��ѯ����keyword_sparql_Q3��ʾ����
-	 *            Ȼ������Dijkstra�㷨�������keyword������·������ ���õ����ս��
+	 *            閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓楗鸿揪鎷烽敓鏂ゆ嫹涓�閿熸枻鎷烽敓鏂ゆ嫹閿熸帴纰夋嫹SPARQL閿熸枻鎷疯閿熸枻鎷烽敓鏂ゆ嫹keyword_sparql_Q3閿熸枻鎷风ず閿熸枻鎷烽敓鏂ゆ嫹
+	 *            鐒堕敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹Dijkstra閿熷娉曢敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熺耽eyword閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷疯矾閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷�
+	 *            閿熸枻鎷烽敓鐭鎷烽敓鏂ゆ嫹閿熺Ц鏂ゆ嫹閿燂拷
 	 */
 	public static void main(String[] args) {
 		try {
@@ -74,11 +71,13 @@ public class QueryProcessing {
 			int cur_id = 0;
 			String[] TermArr, TermArr1;
 
+			int TopKNum = Integer.valueOf(args[2]);
+
 			Date loadingStartTime = new Date();
 
 			EnvironmentConfig envConfig1 = new EnvironmentConfig();
 			envConfig1.setAllowCreate(true);
-			Environment myDbEnvironment1 = new Environment(new File(args[0] + "\\DistanceIndex"), envConfig1);
+			Environment myDbEnvironment1 = new Environment(new File(args[0] + "/DistanceIndex"), envConfig1);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig1 = new DatabaseConfig();
@@ -87,7 +86,7 @@ public class QueryProcessing {
 
 			EnvironmentConfig envConfig2 = new EnvironmentConfig();
 			envConfig2.setAllowCreate(true);
-			Environment myDbEnvironment2 = new Environment(new File(args[0] + "\\StructuralIndex"), envConfig2);
+			Environment myDbEnvironment2 = new Environment(new File(args[0] + "/StructuralIndex"), envConfig2);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig2 = new DatabaseConfig();
@@ -95,15 +94,16 @@ public class QueryProcessing {
 			Database myDatabase2 = myDbEnvironment2.openDatabase(null, "StructuralIndexDB", dbConfig2);
 
 			System.out.println("loading Entity ID Map...");
-			HashMap<Integer, String> IDEntityMap = new HashMap<Integer, String>();
-			HashMap<String, Integer> EntityIDMap = CreateIDEntityMap(args[0] + "\\entity_id_map.txt", IDEntityMap);
+			HashMap<Integer, String> IDEntityMap = null;
+			HashMap<String, Integer> EntityIDMap = CreateIDEntityMap(args[0] + "/entity_id_map.txt", IDEntityMap);
 
 			System.out.println("loading RDF graph...");
-			InputStream in = new FileInputStream(new File(args[0] + "\\graph_adjacent_list.txt"));
+			InputStream in = new FileInputStream(new File(args[0] + "/graph_adjacent_list.txt"));
 			Reader inr = new InputStreamReader(in);
 			BufferedReader br = new BufferedReader(inr);
 
 			int neighbor_id = 0, label_id = 0, NodeNum = 0;
+			int updateNum = 2;
 
 			str = br.readLine();
 			NodeNum = Integer.valueOf(str);
@@ -137,7 +137,7 @@ public class QueryProcessing {
 			br.close();
 
 			System.out.println("loading distance-based index ...");
-			InputStream in175 = new FileInputStream(new File(args[0] + "\\pivot.txt"));
+			InputStream in175 = new FileInputStream(new File(args[0] + "/pivot.txt"));
 			Reader inr175 = new InputStreamReader(in175);
 			BufferedReader br175 = new BufferedReader(inr175);
 
@@ -175,7 +175,7 @@ public class QueryProcessing {
 			br175.close();
 
 			System.out.println("loading structural index ...");
-			InputStream in650 = new FileInputStream(new File(args[0] + "\\p_weight.txt"));
+			InputStream in650 = new FileInputStream(new File(args[0] + "/p_weight.txt"));
 			Reader inr650 = new InputStreamReader(in650);
 			BufferedReader br650 = new BufferedReader(inr650);
 
@@ -211,7 +211,7 @@ public class QueryProcessing {
 
 			br650.close();
 
-			InputStream in70 = new FileInputStream(new File(args[0] + "\\fp.out"));
+			InputStream in70 = new FileInputStream(new File(args[0] + "/fp.out"));
 			Reader inr70 = new InputStreamReader(in70);
 			BufferedReader br70 = new BufferedReader(inr70);
 			TreeSet<Integer> frequentPropertySet = new TreeSet<Integer>();
@@ -288,7 +288,7 @@ public class QueryProcessing {
 			System.out.println("=========================" + "SPTIndex=========================");
 			Date currentTime1 = new Date();
 
-			// ��ȡQuery�е�keyword���֣����ҵ���ѡ��
+			// 閿熸枻鎷峰彇Query閿熷彨纰夋嫹keyword閿熸枻鎷烽敓琛楋綇鎷烽敓鏂ゆ嫹閿熸彮纰夋嫹閿熸枻鎷烽�夐敓鏂ゆ嫹
 			str = br1.readLine();
 			TermArr = str.split(";");
 			int[][] visited = new int[TermArr.length][NodeNum];
@@ -312,7 +312,7 @@ public class QueryProcessing {
 
 				Hits hits = null;
 				Query query = null;
-				IndexSearcher searcher = new IndexSearcher(args[0] + "\\LuceneIndex");
+				IndexSearcher searcher = new IndexSearcher(args[0] + "/LuceneIndex");
 				Analyzer analyzer = new StandardAnalyzer();
 				try {
 					QueryParser qp = new QueryParser("body", analyzer);
@@ -412,9 +412,9 @@ public class QueryProcessing {
 			Date currentTime2 = new Date();
 			System.out.println(currentTime2.getTime() - currentTime1.getTime());
 
-			// ��ȡQuery�е�SPARQL���֣����ҵ���ѡ��
-			// �涨SPARQL��һ�仰��������ж����ֱ���
-			// �����ѯ������Ƽ�����
+			// 閿熸枻鎷峰彇Query閿熷彨纰夋嫹SPARQL閿熸枻鎷烽敓琛楋綇鎷烽敓鏂ゆ嫹閿熸彮纰夋嫹閿熸枻鎷烽�夐敓鏂ゆ嫹
+			// 閿熻姤瀹歋PARQL閿熸枻鎷蜂竴閿熸垝璇濋敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷峰嵏閿熸枻鎷烽敓鏂ゆ嫹鐩撮敓鏂ゆ嫹閿燂拷
+			// 閿熸枻鎷烽敓鏂ゆ嫹閿熺獤顖ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熺嫛纭锋嫹閿熸枻鎷烽敓鏂ゆ嫹
 			str = br1.readLine();
 			ArrayList<String> tpList = ParseSPARQL(str);
 
@@ -477,7 +477,7 @@ public class QueryProcessing {
 					} else {
 						curList = new ArrayList<String>();
 					}
-					// 0��?��Ϊ��˵�ͨ��predicateָ�������
+					// 0閿熸枻鎷�?閿熸枻鎷蜂负閿熸枻鎷疯閿熼叺顭掓嫹閿熺掸redicate鎸囬敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿燂拷
 					curList.add("0\t" + curPredicateID + "\t" + TermArr[2]);
 					QueryAdjacentList.put(TermArr[0], curList);
 
@@ -486,7 +486,7 @@ public class QueryProcessing {
 					} else {
 						curList = new ArrayList<String>();
 					}
-					// 1��?��Ϊ�����������ͨ��predicateָ��˵�
+					// 1閿熸枻鎷�?閿熸枻鎷蜂负閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓閰殿煉鎷烽敓绲edicate鎸囬敓鏂ゆ嫹璇撮敓锟�
 					curList.add("1\t" + curPredicateID + "\t" + TermArr[0]);
 					QueryAdjacentList.put(TermArr[2], curList);
 
@@ -553,7 +553,7 @@ public class QueryProcessing {
 
 			}
 
-			// ѡȡselectivity��ߵı���
+			// 閫夊彇selectivity閿熸枻鎷峰彥璋嬮敓鏂ゆ嫹閿燂拷
 			System.out.print("candidates number:");
 
 			Iterator<VariableInfo> iter2 = VariableInfoSet.iterator();
@@ -590,8 +590,8 @@ public class QueryProcessing {
 					for (int i = 0; i < curList.size(); i++) {
 						curEdgeStr = curList.get(i);
 						TermArr = curEdgeStr.split("\t");
-						// ��������ֵΪ-1�������˱���
-						// ���򷵻ص�ǰ���һ��λ��
+						// 閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹鍊间负-1閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鍓挎唻鎷烽敓鏂ゆ嫹
+						// 閿熸枻鎷烽敓娲ヨ繑鍥炵鎷峰墠閿熸枻鎷烽敓鎻紮鎷烽敓杞夸紮鎷烽敓锟�
 						cur_match_pos = SearchInArray(variableArr, TermArr[2]);
 						if (cur_match_pos != -1) {
 							queryQueue.add(TermArr[2]);
@@ -604,9 +604,9 @@ public class QueryProcessing {
 				}
 			}
 
-			// �ɺ�ѡ����ƴ�ӳ����ս�֮��һ��
-			// ��ɵ�һ������
-			// �����浽���ջ��
+			// 閿熺即鐚存嫹閫夐敓鏂ゆ嫹閿熸枻鎷锋嫾閿熸帴绛规嫹閿熸枻鎷烽敓绉告枻鎷蜂箣閿熸枻鎷蜂竴閿熸枻鎷�
+			// 閿熸枻鎷峰偦閿熸彮浼欐嫹閿熸枻鎷烽敓鏂ゆ嫹閿燂拷
+			// 閿熸枻鎷烽敓鏂ゆ嫹閿熻姤鍒伴敓鏂ゆ嫹閿熺Ц浼欐嫹閿燂拷
 			TreeSet<ResultInfo> resultSet = new TreeSet<ResultInfo>();
 			ResultInfo tempResultInfo = null;
 			ArrayList<ResultInfo> tempResultInfoList = new ArrayList<ResultInfo>();
@@ -630,7 +630,7 @@ public class QueryProcessing {
 			Collections.sort(tempResultInfoList);
 			LinkedList<ResultInfo> resultStack = new LinkedList<ResultInfo>(tempResultInfoList);
 
-			// ��ʼ����״̬�ռ�������������
+			// 閿熸枻鎷峰閿熸枻鎷烽敓鏂ゆ嫹鐘舵�侀敓绉哥》鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷烽敓鏂ゆ嫹閿熸枻鎷�
 			int next_match_pos = 0, cur_socre_bound = Integer.MAX_VALUE;
 			int candidate_count = resultStack.size();
 			while (resultStack.size() != 0 && queryEdgeList.size() != 0) {
@@ -721,17 +721,16 @@ public class QueryProcessing {
 			System.out.println(resultSet.size());
 
 			Iterator<ResultInfo> iter = resultSet.iterator();
-
 			while (iter.hasNext()) {
 				ResultInfo e = iter.next();
 				for (int i = 0; i < e.matchArr.length; i++) {
 					System.out.print(IDEntityMap.get(e.matchArr[i]) + "\t");
 				}
-				System.out.println(e.getScore());
+				System.out.println();
 			}
 
-			System.out.println("candidate count:\t" + candidate_count);
-			System.out.println("keyword count:\t" + keyword_count);
+			// System.out.println("candidate count:\t" + candidate_count);
+			// System.out.println("keyword count:\t" + keyword_count);
 
 			if (myDatabase1 != null) {
 				myDatabase1.close();
@@ -909,6 +908,7 @@ public class QueryProcessing {
 		BufferedReader br0 = new BufferedReader(inr0);
 
 		HashMap<String, Integer> VertexIDMap = new HashMap<String, Integer>();
+		IDVertexMap = new HashMap<Integer, String>();
 		str = br0.readLine();
 
 		while (str != null) {
@@ -966,17 +966,6 @@ public class QueryProcessing {
 		return -2;
 	}
 
-	private static void printResults(TreeSet<ResultInfo> resultSet, String fileStr) throws FileNotFoundException {
-		PrintStream out = new PrintStream(new File(fileStr));
-		Iterator<ResultInfo> iter = resultSet.iterator();
-		while (iter.hasNext()) {
-			out.println(iter.next());
-		}
-
-		out.flush();
-		out.close();
-	}
-
 	private static byte[] intArrayToBytes(int[] a) {
 		byte[] b = new byte[a.length + a.length + a.length + a.length];
 		int offset = 8, pos = 0;
@@ -1013,36 +1002,59 @@ public class QueryProcessing {
 
 		ArrayList<String> tpList = new ArrayList<String>();
 
-		org.apache.jena.query.Query query = QueryFactory.create(queryString);
-		List<Var> l2 = query.getProjectVars();
-		String str = l2.toString();
+		try {
+			SPARQLParser parser = new SPARQLParser();
+			ParsedQuery query = parser.parseQuery(queryString, null);
 
-		ElementGroup curQueryPattern = (ElementGroup) query.getQueryPattern();
-		List<Element> l1 = curQueryPattern.getElements();
+			StatementPatternCollector collector = new StatementPatternCollector();
+			query.getTupleExpr().visit(collector);
 
-		Element e = l1.get(0);
-		str = e.toString();
-		String[] TermArr = str.split("\n");
+			List<StatementPattern> patterns = collector.getStatementPatterns();
 
-		for (int i = 0; i < TermArr.length; i++) {
-			String[] TermArr1 = TermArr[i].split("\n");
-
-			String objStr = "";
-			if (i == TermArr.length - 1) {
-				for (int j = 2; j < TermArr1.length; j++) {
-					objStr += TermArr1[j] + " ";
-				}
-			} else {
-				for (int j = 2; j < TermArr1.length - 1; j++) {
-					objStr += TermArr1[j] + " ";
-				}
+			for (int i = 0; i < patterns.size(); i++) {
+				StatementPattern curPattern = patterns.get(i);
+				tpList.add(TP2String(curPattern));
 			}
-			objStr = objStr.trim();
 
-			tpList.add(TermArr[0] + "\t" + TermArr[1] + "\t" + objStr);
+		} catch (MalformedQueryException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		return tpList;
 	}
 
+	private static String TP2String(StatementPattern curPattern) {
+		String curTriplePatternStr = "";
+
+		if (!curPattern.getSubjectVar().isConstant()) {
+			curTriplePatternStr += "?" + curPattern.getSubjectVar().getName() + "\t";
+		} else {
+			curTriplePatternStr += "<" + curPattern.getSubjectVar().getValue().toString() + ">\t";
+		}
+
+		if (!curPattern.getPredicateVar().isConstant()) {
+			curTriplePatternStr += "?" + curPattern.getPredicateVar().getName() + "\t";
+		} else {
+			curTriplePatternStr += "<" + curPattern.getPredicateVar().getValue().toString() + ">\t";
+		}
+
+		if (!curPattern.getObjectVar().isConstant()) {
+			curTriplePatternStr += "?" + curPattern.getObjectVar().getName() + "\t";
+		} else {
+
+			if (!curPattern.getObjectVar().getValue().toString().startsWith("\"")) {
+				curTriplePatternStr += "<" + curPattern.getObjectVar().getValue().toString() + ">\t";
+			} else {
+				curTriplePatternStr += curPattern.getObjectVar().getValue().toString();
+			}
+		}
+		curTriplePatternStr = curTriplePatternStr.replace("^^<http://www.w3.org/2001/XMLSchema#string>", "");
+		curTriplePatternStr = curTriplePatternStr.trim();
+
+		return curTriplePatternStr;
+	}
 }

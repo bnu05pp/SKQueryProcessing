@@ -56,7 +56,7 @@ import Common.HeapNode;
 import Common.VariableInfo;
 import Common.ResultInfo;
 
-public class QueryProcessing {
+public class ComplexQueryLuceneSPTIndex {
 
 	static final int updateNum = 2;
 	static int PivotNum = 500;
@@ -78,28 +78,34 @@ public class QueryProcessing {
 
 			EnvironmentConfig envConfig1 = new EnvironmentConfig();
 			envConfig1.setAllowCreate(true);
-			Environment myDbEnvironment1 = new Environment(new File(args[0] + "\\DistanceIndex"), envConfig1);
+			Environment myDbEnvironment1 = new Environment(new File(args[0]
+					+ "\\DistanceIndex"), envConfig1);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig1 = new DatabaseConfig();
 			dbConfig1.setAllowCreate(true);
-			Database myDatabase1 = myDbEnvironment1.openDatabase(null, "DistanceIndexDB", dbConfig1);
+			Database myDatabase1 = myDbEnvironment1.openDatabase(null,
+					"DistanceIndexDB", dbConfig1);
 
 			EnvironmentConfig envConfig2 = new EnvironmentConfig();
 			envConfig2.setAllowCreate(true);
-			Environment myDbEnvironment2 = new Environment(new File(args[0] + "\\StructuralIndex"), envConfig2);
+			Environment myDbEnvironment2 = new Environment(new File(args[0]
+					+ "\\StructuralIndex"), envConfig2);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig2 = new DatabaseConfig();
 			dbConfig2.setAllowCreate(true);
-			Database myDatabase2 = myDbEnvironment2.openDatabase(null, "StructuralIndexDB", dbConfig2);
+			Database myDatabase2 = myDbEnvironment2.openDatabase(null,
+					"StructuralIndexDB", dbConfig2);
 
 			System.out.println("loading Entity ID Map...");
 			HashMap<Integer, String> IDEntityMap = new HashMap<Integer, String>();
-			HashMap<String, Integer> EntityIDMap = CreateIDEntityMap(args[0] + "\\entity_id_map.txt", IDEntityMap);
+			HashMap<String, Integer> EntityIDMap = CreateIDEntityMap(args[0]
+					+ "\\entity_id_map.txt", IDEntityMap);
 
 			System.out.println("loading RDF graph...");
-			InputStream in = new FileInputStream(new File(args[0] + "\\graph_adjacent_list.txt"));
+			InputStream in = new FileInputStream(new File(args[0]
+					+ "\\graph_adjacent_list.txt"));
 			Reader inr = new InputStreamReader(in);
 			BufferedReader br = new BufferedReader(inr);
 
@@ -126,9 +132,12 @@ public class QueryProcessing {
 					neighbor_id = Integer.valueOf(TermArr1[i]);
 					label_id = Integer.valueOf(TermArr1[i + 1]);
 
-					adjacentList[cur_id][i / 4] = new NeighborInfo(neighbor_id, label_id);
-					adjacentList[cur_id][i / 4].Distance = Integer.valueOf(TermArr1[i + 2]);
-					adjacentList[cur_id][i / 4].Direction = Integer.valueOf(TermArr1[i + 3]);
+					adjacentList[cur_id][i / 4] = new NeighborInfo(neighbor_id,
+							label_id);
+					adjacentList[cur_id][i / 4].Distance = Integer
+							.valueOf(TermArr1[i + 2]);
+					adjacentList[cur_id][i / 4].Direction = Integer
+							.valueOf(TermArr1[i + 3]);
 				}
 
 				str = br.readLine();
@@ -137,7 +146,8 @@ public class QueryProcessing {
 			br.close();
 
 			System.out.println("loading distance-based index ...");
-			InputStream in175 = new FileInputStream(new File(args[0] + "\\pivot.txt"));
+			InputStream in175 = new FileInputStream(new File(args[0]
+					+ "\\pivot.txt"));
 			Reader inr175 = new InputStreamReader(in175);
 			BufferedReader br175 = new BufferedReader(inr175);
 
@@ -175,7 +185,8 @@ public class QueryProcessing {
 			br175.close();
 
 			System.out.println("loading structural index ...");
-			InputStream in650 = new FileInputStream(new File(args[0] + "\\p_weight.txt"));
+			InputStream in650 = new FileInputStream(new File(args[0]
+					+ "\\p_weight.txt"));
 			Reader inr650 = new InputStreamReader(in650);
 			BufferedReader br650 = new BufferedReader(inr650);
 
@@ -211,7 +222,8 @@ public class QueryProcessing {
 
 			br650.close();
 
-			InputStream in70 = new FileInputStream(new File(args[0] + "\\fp.out"));
+			InputStream in70 = new FileInputStream(new File(args[0]
+					+ "\\fp.out"));
 			Reader inr70 = new InputStreamReader(in70);
 			BufferedReader br70 = new BufferedReader(inr70);
 			TreeSet<Integer> frequentPropertySet = new TreeSet<Integer>();
@@ -237,16 +249,18 @@ public class QueryProcessing {
 					fpStr += item_id + " ";
 				}
 				fpStr = fpStr.trim();
-				TermArr[TermArr.length - 1] = TermArr[TermArr.length - 1].substring(1,
-						TermArr[TermArr.length - 1].length() - 1);
+				TermArr[TermArr.length - 1] = TermArr[TermArr.length - 1]
+						.substring(1, TermArr[TermArr.length - 1].length() - 1);
 				cur_frequency = Integer.valueOf(TermArr[TermArr.length - 1]);
 
 				FPInfo newFP = new FPInfo(fpStr, cur_frequency);
-				if (fpList.size() > 0 && fpList.get(fpList.size() - 1).isSubFP(newFP)) {
+				if (fpList.size() > 0
+						&& fpList.get(fpList.size() - 1).isSubFP(newFP)) {
 					fpList.get(fpList.size() - 1).FPStr = newFP.FPStr;
 					fpList.get(fpList.size() - 1).Frequency = newFP.Frequency;
 
-					while (fpList.size() > 1 && fpList.get(fpList.size() - 2).isSubFP(newFP)) {
+					while (fpList.size() > 1
+							&& fpList.get(fpList.size() - 2).isSubFP(newFP)) {
 						fpList.get(fpList.size() - 2).FPStr = newFP.FPStr;
 						fpList.get(fpList.size() - 2).Frequency = newFP.Frequency;
 
@@ -276,7 +290,8 @@ public class QueryProcessing {
 
 			Date loadingEndTime = new Date();
 			System.out.print("loading time:");
-			System.out.println(loadingEndTime.getTime() - loadingStartTime.getTime() + "ms");
+			System.out.println(loadingEndTime.getTime()
+					- loadingStartTime.getTime() + "ms");
 
 			System.out.println("begin to process query...");
 			String fileStr = args[1];
@@ -285,7 +300,8 @@ public class QueryProcessing {
 			BufferedReader br1 = new BufferedReader(inr1);
 
 			System.out.println(fileStr);
-			System.out.println("=========================" + "SPTIndex=========================");
+			System.out.println("========================="
+					+ "SPTIndex=========================");
 			Date currentTime1 = new Date();
 
 			// ��ȡQuery�е�keyword���֣����ҵ���ѡ��
@@ -312,7 +328,8 @@ public class QueryProcessing {
 
 				Hits hits = null;
 				Query query = null;
-				IndexSearcher searcher = new IndexSearcher(args[0] + "\\LuceneIndex");
+				IndexSearcher searcher = new IndexSearcher(args[0]
+						+ "\\LuceneIndex");
 				Analyzer analyzer = new StandardAnalyzer();
 				try {
 					QueryParser qp = new QueryParser("body", analyzer);
@@ -324,7 +341,8 @@ public class QueryProcessing {
 
 					for (int m = 0; m < hits.length(); m++) {
 
-						String titleStr = hits.doc(m).getField("title").stringValue();
+						String titleStr = hits.doc(m).getField("title")
+								.stringValue();
 						cur_id = Integer.valueOf(titleStr);
 
 						HeapNode curHeapNode = new HeapNode(cur_id);
@@ -341,14 +359,17 @@ public class QueryProcessing {
 						visited[n][curHeapNode.VertexID] = curHeapNode.Dist;
 						keyword_count++;
 
-						if (RNSet.contains(curHeapNode.VertexID) && !visitedRNSet.contains(curHeapNode.VertexID)
+						if (RNSet.contains(curHeapNode.VertexID)
+								&& !visitedRNSet.contains(curHeapNode.VertexID)
 								&& visitedRNSet.size() < updateNum) {
 
 							String aKey = "" + curHeapNode.VertexID;
-							DatabaseEntry theKey = new DatabaseEntry(aKey.getBytes("UTF-8"));
+							DatabaseEntry theKey = new DatabaseEntry(
+									aKey.getBytes("UTF-8"));
 							DatabaseEntry theData = new DatabaseEntry();
 
-							if (myDatabase1.get(null, theKey, theData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+							if (myDatabase1.get(null, theKey, theData,
+									LockMode.DEFAULT) == OperationStatus.SUCCESS) {
 
 								// Recreate the data String.
 								byte[] retData = theData.getData();
@@ -385,21 +406,28 @@ public class QueryProcessing {
 
 								int cur_dist = candidateDist[n][TermArr2[i].NeighborID];
 								if (TermArr2[i].Distance + curHeapNode.Dist < cur_dist) {
-									HeapNode tempHeapNode = new HeapNode(TermArr2[i].NeighborID);
+									HeapNode tempHeapNode = new HeapNode(
+											TermArr2[i].NeighborID);
 									tempHeapNode.Dist = cur_dist;
 									candidate.remove(tempHeapNode);
 
-									HeapNode newHeapNode = new HeapNode(TermArr2[i].NeighborID);
-									newHeapNode.Dist = TermArr2[i].Distance + curHeapNode.Dist;
+									HeapNode newHeapNode = new HeapNode(
+											TermArr2[i].NeighborID);
+									newHeapNode.Dist = TermArr2[i].Distance
+											+ curHeapNode.Dist;
 									candidate.add(newHeapNode);
 
-									candidateDist[n][TermArr2[i].NeighborID] = TermArr2[i].Distance + curHeapNode.Dist;
+									candidateDist[n][TermArr2[i].NeighborID] = TermArr2[i].Distance
+											+ curHeapNode.Dist;
 								}
 							} else {
-								HeapNode newHeapNode = new HeapNode(TermArr2[i].NeighborID);
-								newHeapNode.Dist = TermArr2[i].Distance + curHeapNode.Dist;
+								HeapNode newHeapNode = new HeapNode(
+										TermArr2[i].NeighborID);
+								newHeapNode.Dist = TermArr2[i].Distance
+										+ curHeapNode.Dist;
 								candidate.add(newHeapNode);
-								candidateDist[n][TermArr2[i].NeighborID] = TermArr2[i].Distance + curHeapNode.Dist;
+								candidateDist[n][TermArr2[i].NeighborID] = TermArr2[i].Distance
+										+ curHeapNode.Dist;
 							}
 						}
 					}
@@ -457,16 +485,20 @@ public class QueryProcessing {
 				if (tmp_direction == -1) {
 
 					if (!QueryStarPatternMap.containsKey(TermArr[0])) {
-						QueryStarPatternMap.put(TermArr[0], new ArrayList<NeighborInfo>());
+						QueryStarPatternMap.put(TermArr[0],
+								new ArrayList<NeighborInfo>());
 					}
-					NeighborInfo curNeighborInfo1 = new NeighborInfo(TermArr[2].hashCode(), curPredicateID);
+					NeighborInfo curNeighborInfo1 = new NeighborInfo(
+							TermArr[2].hashCode(), curPredicateID);
 					curNeighborInfo1.Direction = 0;
 					QueryStarPatternMap.get(TermArr[0]).add(curNeighborInfo1);
 
 					if (!QueryStarPatternMap.containsKey(TermArr[2])) {
-						QueryStarPatternMap.put(TermArr[2], new ArrayList<NeighborInfo>());
+						QueryStarPatternMap.put(TermArr[2],
+								new ArrayList<NeighborInfo>());
 					}
-					NeighborInfo curNeighborInfo = new NeighborInfo(TermArr[0].hashCode(), curPredicateID);
+					NeighborInfo curNeighborInfo = new NeighborInfo(
+							TermArr[0].hashCode(), curPredicateID);
 					curNeighborInfo.Direction = 1;
 					QueryStarPatternMap.get(TermArr[2]).add(curNeighborInfo);
 
@@ -502,7 +534,8 @@ public class QueryProcessing {
 				}
 
 				if (VariableInfoSet.contains(curVariableInfo)) {
-					VariableInfo tempVariableInfo = VariableInfoSet.floor(curVariableInfo);
+					VariableInfo tempVariableInfo = VariableInfoSet
+							.floor(curVariableInfo);
 					tempVariableInfo.retain(curVariableInfo);
 				} else {
 					VariableInfoSet.add(curVariableInfo);
@@ -513,10 +546,11 @@ public class QueryProcessing {
 
 			variableNum = varSet.size();
 
-			TreeMap<String, TreeSet<String>> varPatternMap = generateVarPatternMap(QueryStarPatternMap, ItemFPListMap,
-					fpList, LabelItemPosMap);
+			TreeMap<String, TreeSet<String>> varPatternMap = generateVarPatternMap(
+					QueryStarPatternMap, ItemFPListMap, fpList, LabelItemPosMap);
 
-			Iterator<Entry<String, TreeSet<String>>> iter_var = varPatternMap.entrySet().iterator();
+			Iterator<Entry<String, TreeSet<String>>> iter_var = varPatternMap
+					.entrySet().iterator();
 			while (iter_var.hasNext()) {
 				Entry<String, TreeSet<String>> e = iter_var.next();
 				curVarStr = e.getKey();
@@ -526,27 +560,32 @@ public class QueryProcessing {
 				while (iter_fp.hasNext()) {
 					fpStr = iter_fp.next() + "\t";
 
-					DatabaseEntry theKey = new DatabaseEntry(fpStr.getBytes("UTF-8"));
+					DatabaseEntry theKey = new DatabaseEntry(
+							fpStr.getBytes("UTF-8"));
 					DatabaseEntry theData = new DatabaseEntry();
 
-					if (myDatabase2.get(null, theKey, theData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+					if (myDatabase2
+							.get(null, theKey, theData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
 						// Recreate the data String.
 						byte[] retData = theData.getData();
 						int[] idList = byteToInt2(retData);
 
-						VariableInfo curVariableInfo = new VariableInfo(curVarStr);
+						VariableInfo curVariableInfo = new VariableInfo(
+								curVarStr);
 						for (int i = 0; i < idList.length; i++) {
 							curVariableInfo.addMatches(idList[i]);
 						}
 
 						if (VariableInfoSet.contains(curVariableInfo)) {
-							VariableInfo tempVariableInfo = VariableInfoSet.floor(curVariableInfo);
+							VariableInfo tempVariableInfo = VariableInfoSet
+									.floor(curVariableInfo);
 							tempVariableInfo.retain(curVariableInfo);
 						} else {
 							VariableInfoSet.add(curVariableInfo);
 						}
 					} else {
-						System.out.println("No record found for key '" + fpStr + "'.");
+						System.out.println("No record found for key '" + fpStr
+								+ "'.");
 					}
 
 				}
@@ -561,7 +600,8 @@ public class QueryProcessing {
 			VariableInfo minVariableInfo = null;
 			while (iter2.hasNext()) {
 				VariableInfo tempVariableInfo = iter2.next();
-				System.out.print(tempVariableInfo.VariableStr + " " + tempVariableInfo.size() + ", ");
+				System.out.print(tempVariableInfo.VariableStr + " "
+						+ tempVariableInfo.size() + ", ");
 				if (min > tempVariableInfo.size()) {
 					minVariableInfo = tempVariableInfo;
 					min = tempVariableInfo.size();
@@ -597,8 +637,10 @@ public class QueryProcessing {
 							queryQueue.add(TermArr[2]);
 							variableArr[cur_match_pos] = TermArr[2];
 						}
-						if (!containsEdge(queryEdgeList, curVariableStr, TermArr)) {
-							queryEdgeList.add(curVariableStr + "\t" + curEdgeStr);
+						if (!containsEdge(queryEdgeList, curVariableStr,
+								TermArr)) {
+							queryEdgeList.add(curVariableStr + "\t"
+									+ curEdgeStr);
 						}
 					}
 				}
@@ -613,7 +655,8 @@ public class QueryProcessing {
 			Iterator<Integer> iter1 = minVariableInfo.matchesSet.iterator();
 
 			while (iter1.hasNext()) {
-				tempResultInfo = new ResultInfo(variableNum, 0, keywordArr.length);
+				tempResultInfo = new ResultInfo(variableNum, 0,
+						keywordArr.length);
 				tempResultInfo.matchArr[0] = iter1.next();
 
 				if (QueryStarPatternMap.containsKey(variableArr[0])) {
@@ -628,7 +671,8 @@ public class QueryProcessing {
 			}
 
 			Collections.sort(tempResultInfoList);
-			LinkedList<ResultInfo> resultStack = new LinkedList<ResultInfo>(tempResultInfoList);
+			LinkedList<ResultInfo> resultStack = new LinkedList<ResultInfo>(
+					tempResultInfoList);
 
 			// ��ʼ����״̬�ռ�������������
 			int next_match_pos = 0, cur_socre_bound = Integer.MAX_VALUE;
@@ -655,7 +699,8 @@ public class QueryProcessing {
 
 				// while (rs.next()) {
 				for (int i1 = 0; i1 < TermArr2.length; i1++) {
-					if (TermArr2[i1].Label != curPredicateID || TermArr2[i1].Direction != tmp_direction)
+					if (TermArr2[i1].Label != curPredicateID
+							|| TermArr2[i1].Direction != tmp_direction)
 						continue;
 
 					cur_id = TermArr2[i1].NeighborID;
@@ -664,16 +709,19 @@ public class QueryProcessing {
 
 					VariableInfo curVariableInfo = new VariableInfo(TermArr[3]);
 					if (VariableInfoSet.contains(curVariableInfo)) {
-						VariableInfo tempVariableInfo = VariableInfoSet.floor(curVariableInfo);
+						VariableInfo tempVariableInfo = VariableInfoSet
+								.floor(curVariableInfo);
 						if (!tempVariableInfo.matchesSet.contains(cur_id))
 							continue;
 					}
 
 					if (tempResultInfo.matchArr[next_match_pos] == -1) {
-						ResultInfo curResultInfo = new ResultInfo(tempResultInfo, tempResultInfo.pos + 1);
+						ResultInfo curResultInfo = new ResultInfo(
+								tempResultInfo, tempResultInfo.pos + 1);
 						curResultInfo.matchArr[next_match_pos] = cur_id;
 
-						if (QueryStarPatternMap.containsKey(variableArr[next_match_pos])) {
+						if (QueryStarPatternMap
+								.containsKey(variableArr[next_match_pos])) {
 							for (int i = 0; i < keywordArr.length; i++) {
 								int temp_dist = candidateDist[i][cur_id];
 								if (temp_dist < curResultInfo.scoreArr[i])
@@ -684,7 +732,8 @@ public class QueryProcessing {
 						if (curResultInfo.pos != queryEdgeList.size()) {
 							resultStack.push(curResultInfo);
 						} else {
-							if (curResultInfo.getScore() < cur_socre_bound || cur_socre_bound == Integer.MAX_VALUE)
+							if (curResultInfo.getScore() < cur_socre_bound
+									|| cur_socre_bound == Integer.MAX_VALUE)
 								resultSet.add(curResultInfo);
 							if (resultSet.size() > TopKNum)
 								resultSet.pollLast();
@@ -692,11 +741,13 @@ public class QueryProcessing {
 						candidate_count++;
 					} else {
 						if (tempResultInfo.matchArr[next_match_pos] == cur_id) {
-							ResultInfo curResultInfo = new ResultInfo(tempResultInfo, tempResultInfo.pos + 1);
+							ResultInfo curResultInfo = new ResultInfo(
+									tempResultInfo, tempResultInfo.pos + 1);
 							if (curResultInfo.pos != queryEdgeList.size()) {
 								resultStack.push(curResultInfo);
 							} else {
-								if (curResultInfo.getScore() < cur_socre_bound || cur_socre_bound == Integer.MAX_VALUE)
+								if (curResultInfo.getScore() < cur_socre_bound
+										|| cur_socre_bound == Integer.MAX_VALUE)
 									resultSet.add(curResultInfo);
 								if (resultSet.size() > TopKNum)
 									resultSet.pollLast();
@@ -760,12 +811,13 @@ public class QueryProcessing {
 
 	private static TreeMap<String, TreeSet<String>> generateVarPatternMap(
 			TreeMap<String, ArrayList<NeighborInfo>> QueryStarPatternMap,
-			TreeMap<Integer, ArrayList<Integer>> ItemFPListMap, ArrayList<FPInfo> fpList,
-			TreeMap<Integer, Integer> LabelItemPosMap) {
+			TreeMap<Integer, ArrayList<Integer>> ItemFPListMap,
+			ArrayList<FPInfo> fpList, TreeMap<Integer, Integer> LabelItemPosMap) {
 
 		TreeMap<String, TreeSet<String>> VarPatternMap = new TreeMap<String, TreeSet<String>>();
 
-		Iterator<Entry<String, ArrayList<NeighborInfo>>> iter_var = QueryStarPatternMap.entrySet().iterator();
+		Iterator<Entry<String, ArrayList<NeighborInfo>>> iter_var = QueryStarPatternMap
+				.entrySet().iterator();
 		int label_count = 0;
 		while (iter_var.hasNext()) {
 			Entry<String, ArrayList<NeighborInfo>> e = iter_var.next();
@@ -778,23 +830,32 @@ public class QueryProcessing {
 			label_count = 1;
 			for (int i = 0; i < curAdjacentList.size(); i++) {
 				if (i > 0) {
-					if (curAdjacentList.get(i).Label != curAdjacentList.get(i - 1).Label
-							|| curAdjacentList.get(i).Direction != curAdjacentList.get(i - 1).Direction) {
+					if (curAdjacentList.get(i).Label != curAdjacentList
+							.get(i - 1).Label
+							|| curAdjacentList.get(i).Direction != curAdjacentList
+									.get(i - 1).Direction) {
 
-						int tmp_item = LabelItemPosMap.get(curAdjacentList.get(i - 1).Label);
+						int tmp_item = LabelItemPosMap.get(curAdjacentList
+								.get(i - 1).Label);
 						if (label_count >= 1) {
 							if (curAdjacentList.get(i - 1).Direction == 0) {
 								if (ItemFPListMap.containsKey(tmp_item)) {
-									ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item);
+									ArrayList<Integer> tmp_pos_list = ItemFPListMap
+											.get(tmp_item);
 									for (int k = 0; k < tmp_pos_list.size(); k++) {
-										VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+										VarPatternMap.get(curVarStr)
+												.add(fpList.get(tmp_pos_list
+														.get(k)).FPStr);
 									}
 								}
 							} else {
 								if (ItemFPListMap.containsKey(tmp_item + 3)) {
-									ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 3);
+									ArrayList<Integer> tmp_pos_list = ItemFPListMap
+											.get(tmp_item + 3);
 									for (int k = 0; k < tmp_pos_list.size(); k++) {
-										VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+										VarPatternMap.get(curVarStr)
+												.add(fpList.get(tmp_pos_list
+														.get(k)).FPStr);
 									}
 								}
 							}
@@ -802,16 +863,22 @@ public class QueryProcessing {
 						if (label_count >= 2) {
 							if (curAdjacentList.get(i - 1).Direction == 0) {
 								if (ItemFPListMap.containsKey(tmp_item + 1)) {
-									ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 1);
+									ArrayList<Integer> tmp_pos_list = ItemFPListMap
+											.get(tmp_item + 1);
 									for (int k = 0; k < tmp_pos_list.size(); k++) {
-										VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+										VarPatternMap.get(curVarStr)
+												.add(fpList.get(tmp_pos_list
+														.get(k)).FPStr);
 									}
 								}
 							} else {
 								if (ItemFPListMap.containsKey(tmp_item + 4)) {
-									ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 4);
+									ArrayList<Integer> tmp_pos_list = ItemFPListMap
+											.get(tmp_item + 4);
 									for (int k = 0; k < tmp_pos_list.size(); k++) {
-										VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+										VarPatternMap.get(curVarStr)
+												.add(fpList.get(tmp_pos_list
+														.get(k)).FPStr);
 									}
 								}
 							}
@@ -819,16 +886,22 @@ public class QueryProcessing {
 						if (label_count >= 3) {
 							if (curAdjacentList.get(i - 1).Direction == 0) {
 								if (ItemFPListMap.containsKey(tmp_item + 2)) {
-									ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 2);
+									ArrayList<Integer> tmp_pos_list = ItemFPListMap
+											.get(tmp_item + 2);
 									for (int k = 0; k < tmp_pos_list.size(); k++) {
-										VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+										VarPatternMap.get(curVarStr)
+												.add(fpList.get(tmp_pos_list
+														.get(k)).FPStr);
 									}
 								}
 							} else {
 								if (ItemFPListMap.containsKey(tmp_item + 5)) {
-									ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 5);
+									ArrayList<Integer> tmp_pos_list = ItemFPListMap
+											.get(tmp_item + 5);
 									for (int k = 0; k < tmp_pos_list.size(); k++) {
-										VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+										VarPatternMap.get(curVarStr)
+												.add(fpList.get(tmp_pos_list
+														.get(k)).FPStr);
 									}
 								}
 							}
@@ -841,20 +914,25 @@ public class QueryProcessing {
 				}
 			}
 
-			int tmp_item = LabelItemPosMap.get(curAdjacentList.get(curAdjacentList.size() - 1).Label);
+			int tmp_item = LabelItemPosMap.get(curAdjacentList
+					.get(curAdjacentList.size() - 1).Label);
 			if (label_count >= 1) {
 				if (curAdjacentList.get(curAdjacentList.size() - 1).Direction == 0) {
 					if (ItemFPListMap.containsKey(tmp_item)) {
-						ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item);
+						ArrayList<Integer> tmp_pos_list = ItemFPListMap
+								.get(tmp_item);
 						for (int k = 0; k < tmp_pos_list.size(); k++) {
-							VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+							VarPatternMap.get(curVarStr).add(
+									fpList.get(tmp_pos_list.get(k)).FPStr);
 						}
 					}
 				} else {
 					if (ItemFPListMap.containsKey(tmp_item + 3)) {
-						ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 3);
+						ArrayList<Integer> tmp_pos_list = ItemFPListMap
+								.get(tmp_item + 3);
 						for (int k = 0; k < tmp_pos_list.size(); k++) {
-							VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+							VarPatternMap.get(curVarStr).add(
+									fpList.get(tmp_pos_list.get(k)).FPStr);
 						}
 					}
 				}
@@ -862,16 +940,20 @@ public class QueryProcessing {
 			if (label_count >= 2) {
 				if (curAdjacentList.get(curAdjacentList.size() - 1).Direction == 0) {
 					if (ItemFPListMap.containsKey(tmp_item + 1)) {
-						ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 1);
+						ArrayList<Integer> tmp_pos_list = ItemFPListMap
+								.get(tmp_item + 1);
 						for (int k = 0; k < tmp_pos_list.size(); k++) {
-							VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+							VarPatternMap.get(curVarStr).add(
+									fpList.get(tmp_pos_list.get(k)).FPStr);
 						}
 					}
 				} else {
 					if (ItemFPListMap.containsKey(tmp_item + 4)) {
-						ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 4);
+						ArrayList<Integer> tmp_pos_list = ItemFPListMap
+								.get(tmp_item + 4);
 						for (int k = 0; k < tmp_pos_list.size(); k++) {
-							VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+							VarPatternMap.get(curVarStr).add(
+									fpList.get(tmp_pos_list.get(k)).FPStr);
 						}
 					}
 				}
@@ -879,16 +961,20 @@ public class QueryProcessing {
 			if (label_count >= 3) {
 				if (curAdjacentList.get(curAdjacentList.size() - 1).Direction == 0) {
 					if (ItemFPListMap.containsKey(tmp_item + 2)) {
-						ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 2);
+						ArrayList<Integer> tmp_pos_list = ItemFPListMap
+								.get(tmp_item + 2);
 						for (int k = 0; k < tmp_pos_list.size(); k++) {
-							VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+							VarPatternMap.get(curVarStr).add(
+									fpList.get(tmp_pos_list.get(k)).FPStr);
 						}
 					}
 				} else {
 					if (ItemFPListMap.containsKey(tmp_item + 5)) {
-						ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 5);
+						ArrayList<Integer> tmp_pos_list = ItemFPListMap
+								.get(tmp_item + 5);
 						for (int k = 0; k < tmp_pos_list.size(); k++) {
-							VarPatternMap.get(curVarStr).add(fpList.get(tmp_pos_list.get(k)).FPStr);
+							VarPatternMap.get(curVarStr).add(
+									fpList.get(tmp_pos_list.get(k)).FPStr);
 						}
 					}
 				}
@@ -898,8 +984,8 @@ public class QueryProcessing {
 		return VarPatternMap;
 	}
 
-	private static HashMap<String, Integer> CreateIDEntityMap(String fileStr, HashMap<Integer, String> IDVertexMap)
-			throws IOException {
+	private static HashMap<String, Integer> CreateIDEntityMap(String fileStr,
+			HashMap<Integer, String> IDVertexMap) throws IOException {
 		String str = "";
 		String[] TermArr;
 		int cur_id = 0;
@@ -938,14 +1024,16 @@ public class QueryProcessing {
 		return -1;
 	}
 
-	private static boolean containsEdge(ArrayList<String> res_edge_list, String curVariableStr, String[] termArr) {
+	private static boolean containsEdge(ArrayList<String> res_edge_list,
+			String curVariableStr, String[] termArr) {
 		String str = "";
 
 		for (int i = 0; i < res_edge_list.size(); i++) {
 			str = res_edge_list.get(i);
 			String[] curTermArr = str.split("\t");
 
-			if (curTermArr[0].equals(termArr[2]) && curTermArr[3].equals(curVariableStr)
+			if (curTermArr[0].equals(termArr[2])
+					&& curTermArr[3].equals(curVariableStr)
 					&& curTermArr[2].equals(termArr[1])) {
 				return true;
 			}
@@ -966,7 +1054,8 @@ public class QueryProcessing {
 		return -2;
 	}
 
-	private static void printResults(TreeSet<ResultInfo> resultSet, String fileStr) throws FileNotFoundException {
+	private static void printResults(TreeSet<ResultInfo> resultSet,
+			String fileStr) throws FileNotFoundException {
 		PrintStream out = new PrintStream(new File(fileStr));
 		Iterator<ResultInfo> iter = resultSet.iterator();
 		while (iter.hasNext()) {

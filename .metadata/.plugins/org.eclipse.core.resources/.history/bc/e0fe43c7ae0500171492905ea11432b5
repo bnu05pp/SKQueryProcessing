@@ -56,7 +56,7 @@ import Common.HeapNode;
 import Common.VariableInfo;
 import Common.ResultInfo;
 
-public class QueryProcessing {
+public class ComplexQueryLuceneSPTIndex {
 
 	static final int updateNum = 2;
 	static int PivotNum = 500;
