@@ -26,7 +26,7 @@ public class FPInfo implements Comparable<FPInfo> {
 	}
 
 	public boolean isSubFP(FPInfo o) {
-		if (this.FPStr.contains(o.FPStr) && ((o.Frequency * 1.0 / this.Frequency) < 1.5)) {
+		if (this.FPStr.contains(o.FPStr) && ((o.Frequency * 1.0 / this.Frequency) < 1.1)) {
 			return true;
 		}
 		return false;
