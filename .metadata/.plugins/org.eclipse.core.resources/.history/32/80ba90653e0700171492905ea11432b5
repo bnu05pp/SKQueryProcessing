@@ -224,13 +224,12 @@ public class QueryProcessing {
 			str = br70.readLine();
 			count = 0;
 			while (str != null) {
-				TermArr = str.split(":");
+				TermArr = str.split(" ");
 
-				TermArr1 = TermArr[0].split(" ");
 				fpStr = "";
-				for (int i = 0; i < TermArr1.length; i++) {
-					TermArr1[i] = TermArr1[i].trim();
-					item_id = Integer.valueOf(TermArr1[i]);
+				for (int i = 0; i < TermArr.length - 1; i++) {
+					itemStr = TermArr[i].replace("item", "");
+					item_id = Integer.valueOf(itemStr);
 					ItemInfo curItem = IDItemMap.get(item_id);
 					frequentPropertySet.add(curItem.Label);
 					frequentItemSet.add(item_id);
@@ -238,11 +237,23 @@ public class QueryProcessing {
 					fpStr += item_id + " ";
 				}
 				fpStr = fpStr.trim();
-				TermArr[1] = TermArr[1].trim();
-				cur_frequency = Integer.valueOf(TermArr[1]);
+				TermArr[TermArr.length - 1] = TermArr[TermArr.length - 1].substring(1,
+						TermArr[TermArr.length - 1].length() - 1);
+				cur_frequency = Integer.valueOf(TermArr[TermArr.length - 1]);
 
 				FPInfo newFP = new FPInfo(fpStr, cur_frequency);
-				if (fpList.size() == 0 || !newFP.isSubFP(fpList.get(fpList.size() - 1))) {
+				if (fpList.size() > 0 && fpList.get(fpList.size() - 1).isSubFP(newFP)) {
+					fpList.get(fpList.size() - 1).FPStr = newFP.FPStr;
+					fpList.get(fpList.size() - 1).Frequency = newFP.Frequency;
+
+					while (fpList.size() > 1 && fpList.get(fpList.size() - 2).isSubFP(newFP)) {
+						fpList.get(fpList.size() - 2).FPStr = newFP.FPStr;
+						fpList.get(fpList.size() - 2).Frequency = newFP.Frequency;
+
+						fpList.remove(fpList.size() - 1);
+					}
+
+				} else {
 					fpList.add(newFP);
 				}
 

@@ -226,7 +226,7 @@ public class QueryProcessing {
 			while (str != null) {
 				TermArr = str.split(":");
 
-				TermArr1 = TermArr[0].split(" ");
+				String[] TermArr1 = TermArr[0].split(" ");
 				fpStr = "";
 				for (int i = 0; i < TermArr1.length; i++) {
 					TermArr1[i] = TermArr1[i].trim();
