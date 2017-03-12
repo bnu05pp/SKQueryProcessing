@@ -177,6 +177,9 @@ public class CreateIndex {
 			count = 0;
 			while (str != null) {
 				count++;
+				if (count % 100000 == 34) {
+					System.out.println("-----" + count);
+				}
 
 				str = str.trim();
 				str = str.substring(0, str.length() - 1);
