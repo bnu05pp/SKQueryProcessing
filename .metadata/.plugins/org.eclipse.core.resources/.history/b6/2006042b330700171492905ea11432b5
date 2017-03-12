@@ -17,7 +17,8 @@ public class FPInfo implements Comparable<FPInfo> {
 
 	@Override
 	public String toString() {
-		return "FPInfo [FPStr=" + FPStr + ", Frequency=" + Frequency + ", MatchingList=" + MatchingList + "]";
+		return "FPInfo [FPStr=" + FPStr + ", Frequency=" + Frequency
+				+ ", MatchingList=" + MatchingList + "]";
 	}
 
 	@Override
@@ -26,7 +27,7 @@ public class FPInfo implements Comparable<FPInfo> {
 	}
 
 	public boolean isSubFP(FPInfo o) {
-		if (this.FPStr.contains(o.FPStr) && ((o.Frequency * 1.0 / this.Frequency) < 1.1)) {
+		if (this.FPStr.contains(o.FPStr) && o.Frequency - this.Frequency < 10) {
 			return true;
 		}
 		return false;

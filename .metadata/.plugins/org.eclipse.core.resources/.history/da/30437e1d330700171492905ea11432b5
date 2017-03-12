@@ -459,7 +459,17 @@ public class CreateIndex {
 				cur_frequency = Integer.valueOf(TermArr[1]);
 
 				FPInfo newFP = new FPInfo(fpStr, cur_frequency);
-				if (fpList.size() == 0 || !newFP.isSubFP(fpList.get(fpList.size() - 1))) {
+				if (fpList.size() > 0 && fpList.get(fpList.size() - 1).isSubFP(newFP)) {
+					fpList.get(fpList.size() - 1).FPStr = newFP.FPStr;
+					fpList.get(fpList.size() - 1).Frequency = newFP.Frequency;
+
+					while (fpList.size() > 1 && fpList.get(fpList.size() - 2).isSubFP(newFP)) {
+						fpList.get(fpList.size() - 2).FPStr = newFP.FPStr;
+						fpList.get(fpList.size() - 2).Frequency = newFP.Frequency;
+
+						fpList.remove(fpList.size() - 1);
+					}
+				} else {
 					fpList.add(newFP);
 				}
 
