@@ -1,0 +1,819 @@
+
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.index.IndexWriter;
+
+import com.sleepycat.je.Database;
+import com.sleepycat.je.DatabaseConfig;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.Environment;
+import com.sleepycat.je.EnvironmentConfig;
+
+import Common.FPInfo;
+import Common.ItemInfo;
+import Common.KeyValuePair;
+import Common.NeighborInfo;
+import Common.HeapNode;
+
+public class CreateIndex {
+
+	static int amplifier = 1000000;
+
+	public static void main(String[] args) {
+		try {
+			String str = "";
+			int count = 0;
+			String[] TermArr;
+			int PivotNum = Integer.valueOf(args[2]);
+
+			File file = new File(args[0]);
+			if (!file.exists()) {
+				file.mkdirs();
+			}
+			File file1 = new File(args[0] + "/DistanceIndex");
+			if (!file1.exists()) {
+				file1.mkdirs();
+			}
+			File file2 = new File(args[0] + "/LuceneIndex");
+			if (!file2.exists()) {
+				file2.mkdirs();
+			}
+			File file3 = new File(args[0] + "/StructuralIndex");
+			if (!file3.exists()) {
+				file3.mkdirs();
+			}
+
+			EnvironmentConfig envConfig1 = new EnvironmentConfig();
+			envConfig1.setAllowCreate(true);
+			Environment myDbEnvironment1 = new Environment(new File(args[0] + "/DistanceIndex"), envConfig1);
+
+			// Open the database. Create it if it does not already exist.
+			DatabaseConfig dbConfig1 = new DatabaseConfig();
+			dbConfig1.setAllowCreate(true);
+			Database myDatabase1 = myDbEnvironment1.openDatabase(null, "DistanceIndexDB", dbConfig1);
+
+			EnvironmentConfig envConfig2 = new EnvironmentConfig();
+			envConfig2.setAllowCreate(true);
+			Environment myDbEnvironment2 = new Environment(new File(args[0] + "/StructuralIndex"), envConfig2);
+
+			// Open the database. Create it if it does not already exist.
+			DatabaseConfig dbConfig2 = new DatabaseConfig();
+			dbConfig2.setAllowCreate(true);
+			Database myDatabase2 = myDbEnvironment2.openDatabase(null, "StructuralIndexDB", dbConfig2);
+
+			// ==============================================================
+
+			InputStream in436 = new FileInputStream(new File(args[1]));
+			Reader inr436 = new InputStreamReader(in436);
+			BufferedReader br436 = new BufferedReader(inr436);
+
+			int head_id = 0, tail_id = 0, label_id = 0, cur_id = 0, NodeNum = 0, p_id = 0;
+			ArrayList<ArrayList<NeighborInfo>> adjacentList1 = new ArrayList<ArrayList<NeighborInfo>>();
+			// ArrayList<String> entityLiteralList = new ArrayList<String>();
+			ArrayList<NeighborInfo> curList = new ArrayList<NeighborInfo>();
+			String objStr = "";
+			TreeMap<String, Integer> EntityIDMap = new TreeMap<String, Integer>();
+			HashMap<Integer, String> IDEntityMap = new HashMap<Integer, String>();
+			TreeMap<String, Integer> PredicateIDMap = new TreeMap<String, Integer>();
+			TreeMap<Integer, String> IDPredicateMap = new TreeMap<Integer, String>();
+			TreeMap<Integer, TreeSet<Integer>> predicateSalienceForwardMap = new TreeMap<Integer, TreeSet<Integer>>();
+			TreeMap<Integer, TreeSet<Integer>> predicateSalienceBackwardMap = new TreeMap<Integer, TreeSet<Integer>>();
+
+			str = br436.readLine();
+			count = 0;
+
+			System.out.println("loading RDF data and genenerate the inverted index...");
+			while (str != null) {
+				count++;
+
+				str = str.trim();
+				str = str.substring(0, str.length() - 1);
+				str = str.trim();
+				TermArr = str.split(" ");
+
+				objStr = "";
+				for (int i = 2; i < TermArr.length; i++) {
+					objStr += TermArr[i] + " ";
+				}
+				objStr = objStr.trim();
+
+				if (!EntityIDMap.containsKey(TermArr[0])) {
+					EntityIDMap.put(TermArr[0], cur_id);
+					IDEntityMap.put(cur_id, TermArr[0]);
+					adjacentList1.add(new ArrayList<NeighborInfo>());
+					// entityLiteralList.add("");
+					cur_id++;
+				}
+
+				if (!EntityIDMap.containsKey(objStr)) {
+					EntityIDMap.put(objStr, cur_id);
+					IDEntityMap.put(cur_id, objStr);
+					adjacentList1.add(new ArrayList<NeighborInfo>());
+					// entityLiteralList.add("");
+					cur_id++;
+				}
+
+				if (!PredicateIDMap.containsKey(TermArr[1])) {
+					PredicateIDMap.put(TermArr[1], p_id);
+					IDPredicateMap.put(p_id, TermArr[1]);
+					predicateSalienceForwardMap.put(p_id, new TreeSet<Integer>());
+					predicateSalienceBackwardMap.put(p_id, new TreeSet<Integer>());
+					p_id++;
+				}
+
+				head_id = EntityIDMap.get(TermArr[0]);
+				label_id = PredicateIDMap.get(TermArr[1]);
+				predicateSalienceForwardMap.get(label_id).add(head_id);
+
+				tail_id = EntityIDMap.get(objStr);
+				predicateSalienceBackwardMap.get(label_id).add(tail_id);
+
+				NeighborInfo newNeighborInfo1 = new NeighborInfo(tail_id, label_id);
+				newNeighborInfo1.Direction = 0;
+				adjacentList1.get(head_id).add(newNeighborInfo1);
+
+				NeighborInfo newNeighborInfo2 = new NeighborInfo(head_id, label_id);
+				newNeighborInfo2.Direction = 1;
+				adjacentList1.get(tail_id).add(newNeighborInfo2);
+
+				str = br436.readLine();
+			}
+
+			NodeNum = cur_id;
+			br436.close();
+
+			InputStream in = new FileInputStream(new File(args[1]));
+			Reader inr = new InputStreamReader(in);
+			BufferedReader br = new BufferedReader(inr);
+
+			String[] entityLiteralArr = new String[NodeNum];
+			Arrays.fill(entityLiteralArr, "");
+
+			str = br.readLine();
+			count = 0;
+			while (str != null) {
+				count++;
+				if (count % 100000 == 34) {
+					System.out.println("-----" + count);
+				}
+
+				str = str.trim();
+				str = str.substring(0, str.length() - 1);
+				str = str.trim();
+				TermArr = str.split(" ");
+
+				objStr = "";
+				for (int i = 2; i < TermArr.length; i++) {
+					objStr += TermArr[i] + " ";
+				}
+				objStr = objStr.trim();
+
+				head_id = EntityIDMap.get(TermArr[0]);
+				if (!objStr.startsWith("<")) {
+					entityLiteralArr[head_id] += objStr + "\n";
+				}
+
+				str = br.readLine();
+			}
+			br.close();
+			// System.out.println(count + " " + NodeNum);
+
+			File indexDir = new File(args[0] + "\\LuceneIndex");
+			Analyzer luceneAnalyzer = new StandardAnalyzer();
+			IndexWriter indexWriter = new IndexWriter(indexDir, luceneAnalyzer, true);
+
+			for (cur_id = 0; cur_id < NodeNum; cur_id++) {
+				str = entityLiteralArr[cur_id];
+
+				Document document = new Document();
+
+				Field FieldBody = new Field("body", str, Field.Store.YES, Field.Index.TOKENIZED,
+						Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+				Field FieldTitle = new Field("title", "" + cur_id, Field.Store.YES, Field.Index.NO);
+
+				document.add(FieldBody);
+				document.add(FieldTitle);
+				indexWriter.addDocument(document);
+			}
+
+			indexWriter.optimize();
+			indexWriter.close();
+
+			PrintStream out_entity = new PrintStream(new File(args[0] + "/entity_id_map.txt"));
+			Iterator<Entry<String, Integer>> iter32 = EntityIDMap.entrySet().iterator();
+
+			count = 0;
+			while (iter32.hasNext()) {
+				// if (count % 10000 == 2)
+				// System.out.println(count);
+				count++;
+
+				Entry<String, Integer> e = iter32.next();
+				out_entity.println(e.getValue() + "\t" + e.getKey());
+			}
+
+			out_entity.flush();
+			out_entity.close();
+
+			PrintStream out_p_weight = new PrintStream(new File(args[0] + "/p_weight.txt"));
+			Iterator<Entry<Integer, TreeSet<Integer>>> iter82 = predicateSalienceBackwardMap.entrySet().iterator();
+			int item_id = 0;
+			TreeMap<Integer, ItemInfo> IDItemMap = new TreeMap<Integer, ItemInfo>();
+			TreeMap<Integer, Integer> LabelItemPosMap = new TreeMap<Integer, Integer>();
+
+			count = 0;
+			while (iter82.hasNext()) {
+				// if (count % 10000 == 2)
+				// System.out.println(count);
+				count++;
+
+				Entry<Integer, TreeSet<Integer>> e = iter82.next();
+				p_id = e.getKey();
+
+				TreeSet<Integer> s1 = e.getValue();
+				TreeSet<Integer> s2 = predicateSalienceForwardMap.get(p_id);
+
+				s1.addAll(s2);
+				double tmp_weight = (s1.size() * 1.0) / (adjacentList1.size());
+				int cur_weight = (int) Math.log((tmp_weight * amplifier));
+				out_p_weight.println(IDPredicateMap.get(p_id) + " " + p_id + " " + cur_weight);
+				predicateSalienceForwardMap.put(p_id, s1);
+
+				if (!LabelItemPosMap.containsKey(p_id)) {
+					LabelItemPosMap.put(p_id, item_id);
+
+					IDItemMap.put(item_id, new ItemInfo(p_id, 0, 1));
+					IDItemMap.put((item_id + 1), new ItemInfo(p_id, 0, 2));
+					IDItemMap.put((item_id + 2), new ItemInfo(p_id, 0, 3));
+
+					IDItemMap.put((item_id + 3), new ItemInfo(p_id, 1, 1));
+					IDItemMap.put((item_id + 4), new ItemInfo(p_id, 1, 2));
+					IDItemMap.put((item_id + 5), new ItemInfo(p_id, 1, 3));
+
+					item_id = item_id + 6;
+				}
+			}
+
+			out_p_weight.flush();
+			out_p_weight.close();
+
+			PrintStream out_adjacent_list = new PrintStream(new File(args[0] + "/graph_adjacent_list.txt"));
+			PrintStream out_transaction = new PrintStream(new File(args[0] + "/multi_transaction_set.txt"));
+
+			NeighborInfo[][] adjacentList = new NeighborInfo[NodeNum][];
+			int max_item_count = 0;
+
+			out_adjacent_list.println(NodeNum);
+			for (cur_id = 0; cur_id < adjacentList1.size(); cur_id++) {
+
+				curList = adjacentList1.get(cur_id);
+
+				Collections.sort(curList);
+
+				adjacentList[cur_id] = new NeighborInfo[curList.size()];
+
+				out_adjacent_list.print(cur_id + "\t");
+				ArrayList<Integer> out_transaction_list = new ArrayList<Integer>();
+				Iterator<NeighborInfo> iter = curList.iterator();
+				int i = 0, label_count = 1;
+				while (iter.hasNext()) {
+					NeighborInfo curNeighborInfo = iter.next();
+
+					out_adjacent_list.print(curNeighborInfo.NeighborID + " ");
+					out_adjacent_list.print(curNeighborInfo.Label + " ");
+					double tmp_weight = ((predicateSalienceForwardMap.get(curNeighborInfo.Label).size()) * 1.0)
+							/ (adjacentList1.size());
+					curNeighborInfo.Distance = (int) Math.log((tmp_weight * amplifier));
+					out_adjacent_list.print(curNeighborInfo.Distance + " ");
+					out_adjacent_list.print(curNeighborInfo.Direction + " ");
+					adjacentList[cur_id][i] = curNeighborInfo;
+
+					if (i > 0) {
+						if (adjacentList[cur_id][i].Label != adjacentList[cur_id][i - 1].Label
+								|| adjacentList[cur_id][i].Direction != adjacentList[cur_id][i - 1].Direction) {
+
+							int tmp_item = LabelItemPosMap.get(adjacentList[cur_id][i - 1].Label);
+							if (label_count >= 1) {
+								if (adjacentList[cur_id][i - 1].Direction == 0) {
+									// out_transaction.print("item" + (tmp_item
+									// + 0) + " ");
+									out_transaction_list.add(tmp_item + 0);
+								} else {
+									// out_transaction.print("item" + (tmp_item
+									// + 3) + " ");
+									out_transaction_list.add(tmp_item + 3);
+								}
+							}
+							if (label_count >= 2) {
+								if (adjacentList[cur_id][i - 1].Direction == 0) {
+									// out_transaction.print("item" + (tmp_item
+									// + 1) + " ");
+									out_transaction_list.add(tmp_item + 1);
+								} else {
+									// out_transaction.print("item" + (tmp_item
+									// + 4) + " ");
+									out_transaction_list.add(tmp_item + 4);
+								}
+							}
+							if (label_count >= 3) {
+								if (adjacentList[cur_id][i - 1].Direction == 0) {
+									// out_transaction.print("item" + (tmp_item
+									// + 2) + " ");
+									out_transaction_list.add(tmp_item + 2);
+								} else {
+									// out_transaction.print("item" + (tmp_item
+									// + 5) + " ");
+									out_transaction_list.add(tmp_item + 5);
+								}
+							}
+
+							label_count = 1;
+						} else {
+							label_count++;
+						}
+					}
+					i++;
+				}
+
+				int tmp_item = LabelItemPosMap.get(adjacentList[cur_id][adjacentList[cur_id].length - 1].Label);
+				if (label_count >= 1) {
+					if (adjacentList[cur_id][adjacentList[cur_id].length - 1].Direction == 0) {
+						// out_transaction.print("item" + (tmp_item + 0) + " ");
+						out_transaction_list.add(tmp_item + 0);
+					} else {
+						// out_transaction.print("item" + (tmp_item + 3) + " ");
+						out_transaction_list.add(tmp_item + 3);
+					}
+				}
+				if (label_count >= 2) {
+					if (adjacentList[cur_id][adjacentList[cur_id].length - 1].Direction == 0) {
+						// out_transaction.print("item" + (tmp_item + 1) + " ");
+						out_transaction_list.add(tmp_item + 1);
+					} else {
+						// out_transaction.print("item" + (tmp_item + 4) + " ");
+						out_transaction_list.add(tmp_item + 4);
+					}
+				}
+				if (label_count >= 3) {
+					if (adjacentList[cur_id][adjacentList[cur_id].length - 1].Direction == 0) {
+						// out_transaction.print("item" + (tmp_item + 2) + " ");
+						out_transaction_list.add(tmp_item + 2);
+					} else {
+						// out_transaction.print("item" + (tmp_item + 5) + " ");
+						out_transaction_list.add(tmp_item + 5);
+					}
+				}
+
+				Collections.sort(out_transaction_list);
+				out_transaction.print(out_transaction_list.size() + " ");
+				if (max_item_count < out_transaction_list.size()) {
+					max_item_count = out_transaction_list.size();
+				}
+
+				str = "";
+				for (int j = 0; j < out_transaction_list.size(); j++) {
+					str += (out_transaction_list.get(j) + " ");
+				}
+				str = str.trim();
+				out_transaction.println(str);
+
+				out_adjacent_list.println();
+			}
+			out_adjacent_list.flush();
+			out_adjacent_list.close();
+
+			out_transaction.flush();
+			out_transaction.close();
+
+			adjacentList1.clear();
+
+			System.out.println("starting to " + "genenerate the structural index...");
+			Date starIndexStartTime = new Date();
+			int support_delta = NodeNum / 100;
+			if (NodeNum < 1000) {
+				support_delta = NodeNum / 10;
+			}
+
+			Process prc = Runtime.getRuntime()
+					.exec("./mine -f " + args[0] + "/multi_transaction_set.txt -o " + args[0] + "/fp.out -s "
+							+ support_delta + " -t " + NodeNum + " -i " + IDItemMap.size() + " -w " + max_item_count);
+
+			BufferedReader br_prc = new BufferedReader(new InputStreamReader(prc.getInputStream()));
+			String line = null;
+			while ((line = br_prc.readLine()) != null) {
+				System.out.println(line);
+			}
+
+			prc.waitFor();
+
+			InputStream in70 = new FileInputStream(new File(args[0] + "/fp.out"));
+			Reader inr70 = new InputStreamReader(in70);
+			BufferedReader br70 = new BufferedReader(inr70);
+			TreeSet<Integer> frequentPropertySet = new TreeSet<Integer>();
+			TreeSet<Integer> frequentItemSet = new TreeSet<Integer>();
+			TreeMap<Integer, ArrayList<Integer>> ItemFPListMap = new TreeMap<Integer, ArrayList<Integer>>();
+			ArrayList<FPInfo> fpList = new ArrayList<FPInfo>();
+			String itemStr = "", fpStr = "";
+			int cur_frequency = 0;
+
+			str = br70.readLine();
+			count = 0;
+			while (str != null) {
+				TermArr = str.split(":");
+
+				TermArr1 = TermArr[0].split(":");
+				fpStr = "";
+				for (int i = 0; i < TermArr1.length; i++) {
+					TermArr1[i] = TermArr1[i].trim();
+					item_id = Integer.valueOf(itemStr);
+					ItemInfo curItem = IDItemMap.get(item_id);
+					frequentPropertySet.add(curItem.Label);
+					frequentItemSet.add(item_id);
+
+					fpStr += item_id + " ";
+				}
+				fpStr = fpStr.trim();
+				TermArr[1] = TermArr[1].trim();
+				cur_frequency = Integer.valueOf(TermArr[1]);
+
+				FPInfo newFP = new FPInfo(fpStr, cur_frequency);
+				if (fpList.size() > 0 && fpList.get(fpList.size() - 1).isSubFP(newFP)) {
+					fpList.get(fpList.size() - 1).FPStr = newFP.FPStr;
+					fpList.get(fpList.size() - 1).Frequency = newFP.Frequency;
+
+					while (fpList.size() > 1 && fpList.get(fpList.size() - 2).isSubFP(newFP)) {
+						fpList.get(fpList.size() - 2).FPStr = newFP.FPStr;
+						fpList.get(fpList.size() - 2).Frequency = newFP.Frequency;
+
+						fpList.remove(fpList.size() - 1);
+					}
+				} else {
+					fpList.add(newFP);
+				}
+
+				str = br70.readLine();
+			}
+
+			br70.close();
+
+			for (int i = 0; i < fpList.size(); i++) {
+				TermArr = fpList.get(i).FPStr.split(" ");
+
+				for (int j = 0; j < TermArr.length; j++) {
+					item_id = Integer.valueOf(TermArr[j]);
+					if (!ItemFPListMap.containsKey(item_id)) {
+						ItemFPListMap.put(item_id, new ArrayList<Integer>());
+					}
+					ItemFPListMap.get(item_id).add(i);
+				}
+			}
+
+			int label_count = 0;
+
+			for (int j = 0; j < NodeNum; j++) {
+
+				// if (j % 10000 == 4) {
+				// System.out.println("------------" + j);
+				// }
+
+				if (adjacentList[j] != null) {
+					label_count = 1;
+					for (int i = 0; i < adjacentList[j].length; i++) {
+						if (i > 0) {
+							if (adjacentList[j][i].Label != adjacentList[j][i - 1].Label
+									|| adjacentList[j][i].Direction != adjacentList[j][i - 1].Direction) {
+
+								int tmp_item = LabelItemPosMap.get(adjacentList[j][i - 1].Label);
+								if (label_count >= 1) {
+									if (adjacentList[j][i - 1].Direction == 0) {
+										if (ItemFPListMap.containsKey(tmp_item)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item);
+											for (int k = 0; k < tmp_pos_list.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+											}
+										}
+									} else {
+										if (ItemFPListMap.containsKey(tmp_item + 3)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 3);
+											for (int k = 0; k < tmp_pos_list.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+											}
+										}
+									}
+								}
+								if (label_count >= 2) {
+									if (adjacentList[j][i - 1].Direction == 0) {
+										if (ItemFPListMap.containsKey(tmp_item + 1)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 1);
+											for (int k = 0; k < tmp_pos_list.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+											}
+										}
+									} else {
+										if (ItemFPListMap.containsKey(tmp_item + 4)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 4);
+											for (int k = 0; k < tmp_pos_list.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+											}
+										}
+									}
+								}
+								if (label_count >= 3) {
+									if (adjacentList[j][i - 1].Direction == 0) {
+										if (ItemFPListMap.containsKey(tmp_item + 2)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 2);
+											for (int k = 0; k < tmp_pos_list.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+											}
+										}
+									} else {
+										if (ItemFPListMap.containsKey(tmp_item + 5)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 5);
+											for (int k = 0; k < tmp_pos_list.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+											}
+										}
+									}
+								}
+
+								label_count = 1;
+							} else {
+								label_count++;
+							}
+						}
+					}
+
+					int tmp_item = LabelItemPosMap.get(adjacentList[j][adjacentList[j].length - 1].Label);
+					if (label_count >= 1) {
+						if (adjacentList[j][adjacentList[j].length - 1].Direction == 0) {
+							if (ItemFPListMap.containsKey(tmp_item)) {
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item);
+								for (int k = 0; k < tmp_pos_list.size(); k++) {
+									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+								}
+							}
+						} else {
+							if (ItemFPListMap.containsKey(tmp_item + 3)) {
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 3);
+								for (int k = 0; k < tmp_pos_list.size(); k++) {
+									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+								}
+							}
+						}
+					}
+					if (label_count >= 2) {
+						if (adjacentList[j][adjacentList[j].length - 1].Direction == 0) {
+							if (ItemFPListMap.containsKey(tmp_item + 1)) {
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 1);
+								for (int k = 0; k < tmp_pos_list.size(); k++) {
+									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+								}
+							}
+						} else {
+							if (ItemFPListMap.containsKey(tmp_item + 4)) {
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 4);
+								for (int k = 0; k < tmp_pos_list.size(); k++) {
+									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+								}
+							}
+						}
+					}
+					if (label_count >= 3) {
+						if (adjacentList[j][adjacentList[j].length - 1].Direction == 0) {
+							if (ItemFPListMap.containsKey(tmp_item + 2)) {
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 2);
+								for (int k = 0; k < tmp_pos_list.size(); k++) {
+									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+								}
+							}
+						} else {
+							if (ItemFPListMap.containsKey(tmp_item + 5)) {
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 5);
+								for (int k = 0; k < tmp_pos_list.size(); k++) {
+									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+								}
+							}
+						}
+					}
+
+					// ==================================================================
+				}
+			}
+
+			// PrintStream out_fp_list = new PrintStream(new File(args[0]
+			// + "/fp_list.txt"));
+			for (int i = 0; i < fpList.size(); i++) {
+				// out_fp_list.println(fpList.get(i).FPStr + "\t"
+				// + fpList.get(i).MatchingList.toString());
+				String aKey2 = fpList.get(i).FPStr + "\t";
+				byte[] aData2 = intArrayToBytes(fpList.get(i).MatchingList);
+
+				DatabaseEntry theKey2 = new DatabaseEntry(aKey2.getBytes("UTF-8"));
+				DatabaseEntry theData2 = new DatabaseEntry(aData2);
+				myDatabase2.put(null, theKey2, theData2);
+
+			}
+			Date starIndexEndTime = new Date();
+			Date pivotStartTime = new Date();
+			System.out.println("starting to " + "genenerate the distance-based index...");
+
+			KeyValuePair[] pivotArr = new KeyValuePair[NodeNum];
+			for (int k = 0; k < NodeNum; k++) {
+				pivotArr[k] = new KeyValuePair();
+				pivotArr[k].key = k;
+				pivotArr[k].value = 0;
+				if (adjacentList[k] != null) {
+					pivotArr[k].value = adjacentList[k].length;
+				} else {
+					adjacentList[k] = new NeighborInfo[0];
+				}
+			}
+			Arrays.sort(pivotArr);
+
+			int[] visited = new int[NodeNum];
+			int[] candidateDist = new int[NodeNum];
+			TreeSet<HeapNode> candidate = new TreeSet<HeapNode>();
+
+			PrintStream out_pivot = new PrintStream(new File(args[0] + "/pivot.txt"));
+			for (int j = 0; j < PivotNum; j++) {
+				// PrintStream out = new PrintStream(new File(args[0]
+				// + "/Pivots/" + pivotArr[pivotArr.length - 1 - j].key));
+
+				int sourceID = pivotArr[pivotArr.length - 1 - j].key;
+				out_pivot.println(
+						pivotArr[pivotArr.length - 1 - j].key + "\t" + pivotArr[pivotArr.length - 1 - j].value + "\t");
+				cur_id = 0;
+				int visited_num = 0, cur_dist = 0;
+				Arrays.fill(visited, -1);
+				Arrays.fill(candidateDist, -1);
+
+				visited[sourceID] = 0;
+				visited_num++;
+				for (int i = 0; i < adjacentList[sourceID].length; i++) {
+					HeapNode curHeapNode = new HeapNode(adjacentList[sourceID][i].NeighborID);
+					curHeapNode.Dist = adjacentList[sourceID][i].Distance;
+					candidate.add(curHeapNode);
+					candidateDist[curHeapNode.VertexID] = curHeapNode.Dist;
+				}
+
+				while (candidate.size() != 0) {
+					HeapNode curHeapNode = candidate.pollFirst();
+					visited[curHeapNode.VertexID] = curHeapNode.Dist;
+					visited_num++;
+
+					for (int i = 0; i < adjacentList[curHeapNode.VertexID].length; i++) {
+						// int w = TermArr2[i];
+						if (visited[adjacentList[curHeapNode.VertexID][i].NeighborID] != -1)
+							continue;
+
+						if (candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] != -1) {
+							cur_dist = candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID];
+							if (adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist < cur_dist) {
+								HeapNode tempHeapNode = new HeapNode(adjacentList[curHeapNode.VertexID][i].NeighborID);
+								tempHeapNode.Dist = cur_dist;
+								candidate.remove(tempHeapNode);
+
+								HeapNode newHeapNode = new HeapNode(adjacentList[curHeapNode.VertexID][i].NeighborID);
+								newHeapNode.Dist = adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist;
+								candidate.add(newHeapNode);
+
+								candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = adjacentList[curHeapNode.VertexID][i].Distance
+										+ curHeapNode.Dist;
+							}
+						} else {
+							HeapNode newHeapNode = new HeapNode(adjacentList[curHeapNode.VertexID][i].NeighborID);
+							newHeapNode.Dist = adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist;
+							candidate.add(newHeapNode);
+
+							candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = adjacentList[curHeapNode.VertexID][i].Distance
+									+ curHeapNode.Dist;
+						}
+					}
+				}
+
+				// out.print(Arrays.toString(visited));
+				String aKey1 = "" + pivotArr[pivotArr.length - 1 - j].key;
+				byte[] aData1 = intArrayToBytes(visited);
+
+				DatabaseEntry theKey1 = new DatabaseEntry(aKey1.getBytes("UTF-8"));
+				DatabaseEntry theData1 = new DatabaseEntry(aData1);
+				myDatabase1.put(null, theKey1, theData1);
+
+				// System.out.println(j + "===========" + visited_num
+				// + "===========" + sourceID + "===========");
+				// out.flush();
+				// out.close();
+			}
+			out_pivot.flush();
+			out_pivot.close();
+
+			if (myDatabase1 != null) {
+				myDatabase1.close();
+			}
+
+			if (myDbEnvironment1 != null) {
+				myDbEnvironment1.close();
+			}
+
+			if (myDatabase2 != null) {
+				myDatabase2.close();
+			}
+
+			if (myDbEnvironment2 != null) {
+				myDbEnvironment2.close();
+			}
+
+			Date pivotEndTime = new Date();
+			System.out.println(
+					"distanced-based index take " + (pivotEndTime.getTime() - pivotStartTime.getTime()) + " ms.");
+			System.out.println(
+					"structural index take " + (starIndexEndTime.getTime() - starIndexStartTime.getTime()) + " ms.");
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	private static byte[] intArrayToBytes(ArrayList<Integer> a) {
+		int offset = 8, pos = 0, m = 0, size = a.size();
+		byte[] b = new byte[size + size + size + size];
+
+		for (int i = 0; i < size; i++) {
+			offset = 0;
+			pos = i + i + i + i;
+			m = a.get(i);
+			for (int j = 0; j < 4; j++) {
+				b[pos + j] = (byte) (m >> (24 - offset));
+				offset += 8;
+			}
+		}
+
+		return b;
+	}
+
+	private static byte[] intArrayToBytes(int[] a) {
+		byte[] b = new byte[a.length + a.length + a.length + a.length];
+		int offset = 8, pos = 0;
+
+		for (int i = 0; i < a.length; i++) {
+			offset = 0;
+			pos = i + i + i + i;
+			for (int j = 0; j < 4; j++) {
+				b[pos + j] = (byte) (a[i] >> (24 - offset));
+				offset += 8;
+			}
+		}
+
+		return b;
+	}
+
+	private static int[] byteToInt2(byte[] b) {
+		int mask = 0xff, temp = 0;
+		int[] n = new int[b.length / 4];
+
+		for (int j = 0; j < n.length; j++) {
+			int offset = j + j + j + j;
+			for (int i = 0; i < 4; i++) {
+				n[j] <<= 8;
+				temp = b[offset + i] & mask;
+				n[j] |= temp;
+			}
+		}
+
+		return n;
+
+	}
+}

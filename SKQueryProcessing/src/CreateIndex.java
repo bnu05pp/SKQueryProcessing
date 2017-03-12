@@ -87,9 +87,9 @@ public class CreateIndex {
 
 			// ==============================================================
 
-			InputStream in = new FileInputStream(new File(args[1]));
-			Reader inr = new InputStreamReader(in);
-			BufferedReader br = new BufferedReader(inr);
+			InputStream in436 = new FileInputStream(new File(args[1]));
+			Reader inr436 = new InputStreamReader(in436);
+			BufferedReader br436 = new BufferedReader(inr436);
 
 			int head_id = 0, tail_id = 0, label_id = 0, cur_id = 0, NodeNum = 0, p_id = 0;
 			ArrayList<ArrayList<NeighborInfo>> adjacentList1 = new ArrayList<ArrayList<NeighborInfo>>();
@@ -103,14 +103,12 @@ public class CreateIndex {
 			TreeMap<Integer, TreeSet<Integer>> predicateSalienceForwardMap = new TreeMap<Integer, TreeSet<Integer>>();
 			TreeMap<Integer, TreeSet<Integer>> predicateSalienceBackwardMap = new TreeMap<Integer, TreeSet<Integer>>();
 
-			str = br.readLine();
+			str = br436.readLine();
 			count = 0;
-			System.out.println("loading RDF data...");
+
+			System.out.println("loading RDF data and genenerate the inverted index...");
 			while (str != null) {
 				count++;
-				// if (count % 100000 == 34) {
-				// System.out.println(count);
-				// }
 
 				str = str.trim();
 				str = str.substring(0, str.length() - 1);
@@ -162,18 +160,69 @@ public class CreateIndex {
 				newNeighborInfo2.Direction = 1;
 				adjacentList1.get(tail_id).add(newNeighborInfo2);
 
-				// if (!objStr.startsWith("<")) {
-				// str = entityLiteralList.get(tail_id) + "\n";
-				// str += objStr;
-				// entityLiteralList.set(tail_id, str);
-				// entityLiteralMap.put(tail_id, str);
-				// }
-
-				str = br.readLine();
+				str = br436.readLine();
 			}
 
 			NodeNum = cur_id;
+			br436.close();
+
+			InputStream in = new FileInputStream(new File(args[1]));
+			Reader inr = new InputStreamReader(in);
+			BufferedReader br = new BufferedReader(inr);
+
+			String[] entityLiteralArr = new String[NodeNum];
+			Arrays.fill(entityLiteralArr, "");
+
+			str = br.readLine();
+			count = 0;
+			while (str != null) {
+				count++;
+				if (count % 100000 == 34) {
+					System.out.println("-----" + count);
+				}
+
+				str = str.trim();
+				str = str.substring(0, str.length() - 1);
+				str = str.trim();
+				TermArr = str.split(" ");
+
+				objStr = "";
+				for (int i = 2; i < TermArr.length; i++) {
+					objStr += TermArr[i] + " ";
+				}
+				objStr = objStr.trim();
+
+				head_id = EntityIDMap.get(TermArr[0]);
+				if (!objStr.startsWith("<")) {
+					entityLiteralArr[head_id] += objStr + "\n";
+				}
+
+				str = br.readLine();
+			}
 			br.close();
+			// System.out.println(count + " " + NodeNum);
+
+			File indexDir = new File(args[0] + "\\LuceneIndex");
+			Analyzer luceneAnalyzer = new StandardAnalyzer();
+			IndexWriter indexWriter = new IndexWriter(indexDir, luceneAnalyzer, true);
+
+			for (cur_id = 0; cur_id < NodeNum; cur_id++) {
+				str = entityLiteralArr[cur_id];
+
+				Document document = new Document();
+
+				Field FieldBody = new Field("body", str, Field.Store.YES, Field.Index.TOKENIZED,
+						Field.TermVector.WITH_POSITIONS_OFFSETS);
+
+				Field FieldTitle = new Field("title", "" + cur_id, Field.Store.YES, Field.Index.NO);
+
+				document.add(FieldBody);
+				document.add(FieldTitle);
+				indexWriter.addDocument(document);
+			}
+
+			indexWriter.optimize();
+			indexWriter.close();
 
 			PrintStream out_entity = new PrintStream(new File(args[0] + "/entity_id_map.txt"));
 			Iterator<Entry<String, Integer>> iter32 = EntityIDMap.entrySet().iterator();
@@ -211,7 +260,7 @@ public class CreateIndex {
 
 				s1.addAll(s2);
 				double tmp_weight = (s1.size() * 1.0) / (adjacentList1.size());
-				int cur_weight = (int) (tmp_weight * amplifier);
+				int cur_weight = (int) Math.log((tmp_weight * amplifier));
 				out_p_weight.println(IDPredicateMap.get(p_id) + " " + p_id + " " + cur_weight);
 				predicateSalienceForwardMap.put(p_id, s1);
 
@@ -237,6 +286,7 @@ public class CreateIndex {
 			PrintStream out_transaction = new PrintStream(new File(args[0] + "/multi_transaction_set.txt"));
 
 			NeighborInfo[][] adjacentList = new NeighborInfo[NodeNum][];
+			int max_item_count = 0;
 
 			out_adjacent_list.println(NodeNum);
 			for (cur_id = 0; cur_id < adjacentList1.size(); cur_id++) {
@@ -248,6 +298,7 @@ public class CreateIndex {
 				adjacentList[cur_id] = new NeighborInfo[curList.size()];
 
 				out_adjacent_list.print(cur_id + "\t");
+				ArrayList<Integer> out_transaction_list = new ArrayList<Integer>();
 				Iterator<NeighborInfo> iter = curList.iterator();
 				int i = 0, label_count = 1;
 				while (iter.hasNext()) {
@@ -257,7 +308,7 @@ public class CreateIndex {
 					out_adjacent_list.print(curNeighborInfo.Label + " ");
 					double tmp_weight = ((predicateSalienceForwardMap.get(curNeighborInfo.Label).size()) * 1.0)
 							/ (adjacentList1.size());
-					curNeighborInfo.Distance = (int) (tmp_weight * amplifier);
+					curNeighborInfo.Distance = (int) Math.log((tmp_weight * amplifier));
 					out_adjacent_list.print(curNeighborInfo.Distance + " ");
 					out_adjacent_list.print(curNeighborInfo.Direction + " ");
 					adjacentList[cur_id][i] = curNeighborInfo;
@@ -269,23 +320,35 @@ public class CreateIndex {
 							int tmp_item = LabelItemPosMap.get(adjacentList[cur_id][i - 1].Label);
 							if (label_count >= 1) {
 								if (adjacentList[cur_id][i - 1].Direction == 0) {
-									out_transaction.print("item" + (tmp_item + 0) + " ");
+									// out_transaction.print("item" + (tmp_item
+									// + 0) + " ");
+									out_transaction_list.add(tmp_item + 0);
 								} else {
-									out_transaction.print("item" + (tmp_item + 3) + " ");
+									// out_transaction.print("item" + (tmp_item
+									// + 3) + " ");
+									out_transaction_list.add(tmp_item + 3);
 								}
 							}
 							if (label_count >= 2) {
 								if (adjacentList[cur_id][i - 1].Direction == 0) {
-									out_transaction.print("item" + (tmp_item + 1) + " ");
+									// out_transaction.print("item" + (tmp_item
+									// + 1) + " ");
+									out_transaction_list.add(tmp_item + 1);
 								} else {
-									out_transaction.print("item" + (tmp_item + 4) + " ");
+									// out_transaction.print("item" + (tmp_item
+									// + 4) + " ");
+									out_transaction_list.add(tmp_item + 4);
 								}
 							}
 							if (label_count >= 3) {
 								if (adjacentList[cur_id][i - 1].Direction == 0) {
-									out_transaction.print("item" + (tmp_item + 2) + " ");
+									// out_transaction.print("item" + (tmp_item
+									// + 2) + " ");
+									out_transaction_list.add(tmp_item + 2);
 								} else {
-									out_transaction.print("item" + (tmp_item + 5) + " ");
+									// out_transaction.print("item" + (tmp_item
+									// + 5) + " ");
+									out_transaction_list.add(tmp_item + 5);
 								}
 							}
 
@@ -300,27 +363,45 @@ public class CreateIndex {
 				int tmp_item = LabelItemPosMap.get(adjacentList[cur_id][adjacentList[cur_id].length - 1].Label);
 				if (label_count >= 1) {
 					if (adjacentList[cur_id][adjacentList[cur_id].length - 1].Direction == 0) {
-						out_transaction.print("item" + (tmp_item + 0) + " ");
+						// out_transaction.print("item" + (tmp_item + 0) + " ");
+						out_transaction_list.add(tmp_item + 0);
 					} else {
-						out_transaction.print("item" + (tmp_item + 3) + " ");
+						// out_transaction.print("item" + (tmp_item + 3) + " ");
+						out_transaction_list.add(tmp_item + 3);
 					}
 				}
 				if (label_count >= 2) {
 					if (adjacentList[cur_id][adjacentList[cur_id].length - 1].Direction == 0) {
-						out_transaction.print("item" + (tmp_item + 1) + " ");
+						// out_transaction.print("item" + (tmp_item + 1) + " ");
+						out_transaction_list.add(tmp_item + 1);
 					} else {
-						out_transaction.print("item" + (tmp_item + 4) + " ");
+						// out_transaction.print("item" + (tmp_item + 4) + " ");
+						out_transaction_list.add(tmp_item + 4);
 					}
 				}
 				if (label_count >= 3) {
 					if (adjacentList[cur_id][adjacentList[cur_id].length - 1].Direction == 0) {
-						out_transaction.print("item" + (tmp_item + 2) + " ");
+						// out_transaction.print("item" + (tmp_item + 2) + " ");
+						out_transaction_list.add(tmp_item + 2);
 					} else {
-						out_transaction.print("item" + (tmp_item + 5) + " ");
+						// out_transaction.print("item" + (tmp_item + 5) + " ");
+						out_transaction_list.add(tmp_item + 5);
 					}
 				}
 
-				out_transaction.println();
+				Collections.sort(out_transaction_list);
+				out_transaction.print(out_transaction_list.size() + " ");
+				if (max_item_count < out_transaction_list.size()) {
+					max_item_count = out_transaction_list.size();
+				}
+
+				str = "";
+				for (int j = 0; j < out_transaction_list.size(); j++) {
+					str += (out_transaction_list.get(j) + " ");
+				}
+				str = str.trim();
+				out_transaction.println(str);
+
 				out_adjacent_list.println();
 			}
 			out_adjacent_list.flush();
@@ -338,8 +419,9 @@ public class CreateIndex {
 				support_delta = NodeNum / 10;
 			}
 
-			Process prc = Runtime.getRuntime().exec(
-					"./mine -s-" + support_delta + " " + args[0] + "/multi_transaction_set.txt " + args[0] + "/fp.out");
+			Process prc = Runtime.getRuntime()
+					.exec("./mine -f " + args[0] + "/multi_transaction_set.txt -o " + args[0] + "/fp.out -s "
+							+ support_delta + " -t " + NodeNum + " -i " + IDItemMap.size() + " -w " + max_item_count);
 
 			BufferedReader br_prc = new BufferedReader(new InputStreamReader(prc.getInputStream()));
 			String line = null;
@@ -362,12 +444,13 @@ public class CreateIndex {
 			str = br70.readLine();
 			count = 0;
 			while (str != null) {
-				TermArr = str.split(" ");
+				TermArr = str.split(":");
 
+				String[] TermArr1 = TermArr[0].split(":");
 				fpStr = "";
-				for (int i = 0; i < TermArr.length - 1; i++) {
-					itemStr = TermArr[i].replace("item", "");
-					item_id = Integer.valueOf(itemStr);
+				for (int i = 0; i < TermArr1.length; i++) {
+					TermArr1[i] = TermArr1[i].trim();
+					item_id = Integer.valueOf(TermArr1[i]);
 					ItemInfo curItem = IDItemMap.get(item_id);
 					frequentPropertySet.add(curItem.Label);
 					frequentItemSet.add(item_id);
@@ -375,9 +458,8 @@ public class CreateIndex {
 					fpStr += item_id + " ";
 				}
 				fpStr = fpStr.trim();
-				TermArr[TermArr.length - 1] = TermArr[TermArr.length - 1].substring(1,
-						TermArr[TermArr.length - 1].length() - 1);
-				cur_frequency = Integer.valueOf(TermArr[TermArr.length - 1]);
+				TermArr[1] = TermArr[1].trim();
+				cur_frequency = Integer.valueOf(TermArr[1]);
 
 				FPInfo newFP = new FPInfo(fpStr, cur_frequency);
 				if (fpList.size() > 0 && fpList.get(fpList.size() - 1).isSubFP(newFP)) {
@@ -556,41 +638,7 @@ public class CreateIndex {
 				myDatabase2.put(null, theKey2, theData2);
 
 			}
-			// out_fp_list.flush();
-			// out_fp_list.close();
-
-			System.out.println("starting to " + "genenerate the inverted index...");
 			Date starIndexEndTime = new Date();
-
-			File indexDir = new File(args[0] + "/LuceneIndex");
-			Analyzer luceneAnalyzer = new StandardAnalyzer();
-			IndexWriter indexWriter = new IndexWriter(indexDir, luceneAnalyzer, true);
-
-			Iterator<Entry<String, Integer>> iter_literal = EntityIDMap.entrySet().iterator();
-
-			while (iter_literal.hasNext()) {
-				Entry<String, Integer> en = iter_literal.next();
-				cur_id = en.getValue();
-				str = en.getKey();
-				if (str.startsWith("<"))
-					continue;
-
-				Document document = new Document();
-
-				Field FieldBody = new Field("body", str, Field.Store.YES, Field.Index.TOKENIZED,
-						Field.TermVector.WITH_POSITIONS_OFFSETS);
-
-				Field FieldTitle = new Field("title", "" + cur_id, Field.Store.YES, Field.Index.NO);
-
-				document.add(FieldBody);
-				document.add(FieldTitle);
-				indexWriter.addDocument(document);
-			}
-
-			indexWriter.optimize();
-			indexWriter.close();
-			// entityLiteralList.clear();
-
 			Date pivotStartTime = new Date();
 			System.out.println("starting to " + "genenerate the distance-based index...");
 

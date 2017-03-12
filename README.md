@@ -22,7 +22,7 @@ The file of the SK query consists of two lines. The first line is keywords, whic
 
 
 ## Evaluation
-We have tested on this version on a machine with a 2 Ghz Core 2 Duo processor and 64G RAM memory. All the codes are implemented in Java. We used Berkeley DB 5.0.84 to store the indices, Lucene 2.9.4 to build inverted index for keyword search and jena 3.0.0 to parse SPARQL queries. The above jars are provided in the root directory. Furthermore, we use an executable program, named `mine`, to find out frequent patterns. The executable program is in the root directory.You need put this executable program into the root directory of you project and change its permission to run.
+We have tested on this version on a machine with a 2 Ghz Core 2 Duo processor and 64G RAM memory. All the codes are implemented in Java. We used Berkeley DB 5.0.84 to store the indices, Lucene 2.9.4 to build inverted index for keyword search and sesame 2.8.0 to parse SPARQL queries. The above jars are provided in the root directory. Furthermore, we use an executable program, named `mine`, to find out frequent patterns. The executable program is in the root directory.You need put this executable program into the root directory of you project and change its permission to run.
 
 In this project, we use three real-world RDF datasets, DBLP, Yago and DBPedia & QALD to test our method.
 
@@ -35,7 +35,7 @@ In this project, we use three real-world RDF datasets, DBLP, Yago and DBPedia & 
 
 ### DBPedia & QALD. 
 [DBPedia](http://wiki.dbpedia.org/) is an RDF dataset extracted from Wikipedia.
-[QALD](http://qald.sebastianwalter.org/index.php?x=publications&q=2) is an evaluation campaign on question answering over linked data. In this project, we only select 10 non-aggregation complex queries from QALD for evaluation. You can download the dataset [here] (https://drive.google.com/open?id=0B0Auz4i0D5FYNE1mSTZwU2MxN3M).
+[QALD](http://qald.sebastianwalter.org/index.php?x=publications&q=2) is an evaluation campaign on question answering over linked data. In this project, we only select 10 non-aggregation complex queries from QALD for evaluation. You can download the dataset [here] (http://wiki.dbpedia.org/).
 
 Notice: 
 
