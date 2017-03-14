@@ -421,10 +421,13 @@ public class CreateIndex {
 			if (NodeNum < 1000) {
 				support_delta = NodeNum / 10;
 			}
-			// System.out.println(NodeNum);
+			System.out.println(NodeNum);
 
+			System.out.println("cmd.exe /c start fp_growth.exe -f " + args[0] + "/multi_transaction_set.txt -o "
+					+ args[0] + "/fp.out -s " + support_delta + " -t " + NodeNum + " -i " + IDItemMap.size() + " -w "
+					+ max_item_count);
 			Process prc = Runtime.getRuntime()
-					.exec("cmd.exe /c start mine -f " + args[0] + "\\multi_transaction_set.txt -o " + args[0]
+					.exec("cmd.exe /c start fp_growth.exe -f " + args[0] + "\\multi_transaction_set.txt -o " + args[0]
 							+ "\\fp.out -s " + support_delta + " -t " + NodeNum + " -i " + IDItemMap.size() + " -w "
 							+ max_item_count);
 
@@ -486,7 +489,7 @@ public class CreateIndex {
 			}
 
 			br70.close();
-			// System.out.println("fpList.size() = " + fpList.size());
+			System.out.println("fpList.size() = " + fpList.size());
 
 			for (int i = 0; i < fpList.size(); i++) {
 				int[] curItemArr = fpList.get(i).getItemArr();
@@ -502,6 +505,10 @@ public class CreateIndex {
 			int label_count = 0;
 
 			for (int j = 0; j < NodeNum; j++) {
+
+				if (j % 10000 == 4) {
+					System.out.println("+++++++++++++" + j);
+				}
 
 				if (adjacentList[j] != null) {
 					label_count = 1;

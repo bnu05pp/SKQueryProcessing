@@ -68,21 +68,25 @@ public class CreateIndex {
 
 			EnvironmentConfig envConfig1 = new EnvironmentConfig();
 			envConfig1.setAllowCreate(true);
-			Environment myDbEnvironment1 = new Environment(new File(args[0] + "/DistanceIndex"), envConfig1);
+			Environment myDbEnvironment1 = new Environment(new File(args[0]
+					+ "/DistanceIndex"), envConfig1);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig1 = new DatabaseConfig();
 			dbConfig1.setAllowCreate(true);
-			Database myDatabase1 = myDbEnvironment1.openDatabase(null, "DistanceIndexDB", dbConfig1);
+			Database myDatabase1 = myDbEnvironment1.openDatabase(null,
+					"DistanceIndexDB", dbConfig1);
 
 			EnvironmentConfig envConfig2 = new EnvironmentConfig();
 			envConfig2.setAllowCreate(true);
-			Environment myDbEnvironment2 = new Environment(new File(args[0] + "/StructuralIndex"), envConfig2);
+			Environment myDbEnvironment2 = new Environment(new File(args[0]
+					+ "/StructuralIndex"), envConfig2);
 
 			// Open the database. Create it if it does not already exist.
 			DatabaseConfig dbConfig2 = new DatabaseConfig();
 			dbConfig2.setAllowCreate(true);
-			Database myDatabase2 = myDbEnvironment2.openDatabase(null, "StructuralIndexDB", dbConfig2);
+			Database myDatabase2 = myDbEnvironment2.openDatabase(null,
+					"StructuralIndexDB", dbConfig2);
 
 			// ==============================================================
 
@@ -105,7 +109,8 @@ public class CreateIndex {
 			str = br436.readLine();
 			count = 0;
 
-			System.out.println("loading RDF data and genenerate the inverted index...");
+			System.out
+					.println("loading RDF data and genenerate the inverted index...");
 			while (str != null) {
 				count++;
 
@@ -139,8 +144,10 @@ public class CreateIndex {
 				if (!PredicateIDMap.containsKey(TermArr[1])) {
 					PredicateIDMap.put(TermArr[1], p_id);
 					IDPredicateMap.put(p_id, TermArr[1]);
-					predicateSalienceForwardMap.put(p_id, new TreeSet<Integer>());
-					predicateSalienceBackwardMap.put(p_id, new TreeSet<Integer>());
+					predicateSalienceForwardMap.put(p_id,
+							new TreeSet<Integer>());
+					predicateSalienceBackwardMap.put(p_id,
+							new TreeSet<Integer>());
 					p_id++;
 				}
 
@@ -151,11 +158,13 @@ public class CreateIndex {
 				tail_id = EntityIDMap.get(objStr);
 				predicateSalienceBackwardMap.get(label_id).add(tail_id);
 
-				NeighborInfo newNeighborInfo1 = new NeighborInfo(tail_id, label_id);
+				NeighborInfo newNeighborInfo1 = new NeighborInfo(tail_id,
+						label_id);
 				newNeighborInfo1.Direction = 0;
 				adjacentList1.get(head_id).add(newNeighborInfo1);
 
-				NeighborInfo newNeighborInfo2 = new NeighborInfo(head_id, label_id);
+				NeighborInfo newNeighborInfo2 = new NeighborInfo(head_id,
+						label_id);
 				newNeighborInfo2.Direction = 1;
 				adjacentList1.get(tail_id).add(newNeighborInfo2);
 
@@ -176,6 +185,9 @@ public class CreateIndex {
 			count = 0;
 			while (str != null) {
 				count++;
+				if (count % 100000 == 34) {
+					System.out.println("-----" + count);
+				}
 
 				str = str.trim();
 				str = str.substring(0, str.length() - 1);
@@ -199,17 +211,20 @@ public class CreateIndex {
 
 			File indexDir = new File(args[0] + "\\LuceneIndex");
 			Analyzer luceneAnalyzer = new StandardAnalyzer();
-			IndexWriter indexWriter = new IndexWriter(indexDir, luceneAnalyzer, true);
+			IndexWriter indexWriter = new IndexWriter(indexDir, luceneAnalyzer,
+					true);
 
 			for (cur_id = 0; cur_id < NodeNum; cur_id++) {
 				str = entityLiteralArr[cur_id];
 
 				Document document = new Document();
 
-				Field FieldBody = new Field("body", str, Field.Store.YES, Field.Index.TOKENIZED,
+				Field FieldBody = new Field("body", str, Field.Store.YES,
+						Field.Index.TOKENIZED,
 						Field.TermVector.WITH_POSITIONS_OFFSETS);
 
-				Field FieldTitle = new Field("title", "" + cur_id, Field.Store.YES, Field.Index.NO);
+				Field FieldTitle = new Field("title", "" + cur_id,
+						Field.Store.YES, Field.Index.NO);
 
 				document.add(FieldBody);
 				document.add(FieldTitle);
@@ -219,8 +234,10 @@ public class CreateIndex {
 			indexWriter.optimize();
 			indexWriter.close();
 
-			PrintStream out_entity = new PrintStream(new File(args[0] + "/entity_id_map.txt"));
-			Iterator<Entry<String, Integer>> iter32 = EntityIDMap.entrySet().iterator();
+			PrintStream out_entity = new PrintStream(new File(args[0]
+					+ "/entity_id_map.txt"));
+			Iterator<Entry<String, Integer>> iter32 = EntityIDMap.entrySet()
+					.iterator();
 			byte[] entityTagArr = new byte[NodeNum];
 			Arrays.fill(entityTagArr, (byte) 0);
 
@@ -243,8 +260,10 @@ public class CreateIndex {
 			out_entity.flush();
 			out_entity.close();
 
-			PrintStream out_p_weight = new PrintStream(new File(args[0] + "/p_weight.txt"));
-			Iterator<Entry<Integer, TreeSet<Integer>>> iter82 = predicateSalienceBackwardMap.entrySet().iterator();
+			PrintStream out_p_weight = new PrintStream(new File(args[0]
+					+ "/p_weight.txt"));
+			Iterator<Entry<Integer, TreeSet<Integer>>> iter82 = predicateSalienceBackwardMap
+					.entrySet().iterator();
 			int item_id = 0;
 			TreeMap<Integer, ItemInfo> IDItemMap = new TreeMap<Integer, ItemInfo>();
 			TreeMap<Integer, Integer> LabelItemPosMap = new TreeMap<Integer, Integer>();
@@ -264,7 +283,8 @@ public class CreateIndex {
 				s1.addAll(s2);
 				double tmp_weight = (s1.size() * 1.0) / (adjacentList1.size());
 				int cur_weight = (int) Math.log((tmp_weight * amplifier));
-				out_p_weight.println(IDPredicateMap.get(p_id) + " " + p_id + " " + cur_weight);
+				out_p_weight.println(IDPredicateMap.get(p_id) + " " + p_id
+						+ " " + cur_weight);
 				predicateSalienceForwardMap.put(p_id, s1);
 
 				if (!LabelItemPosMap.containsKey(p_id)) {
@@ -285,8 +305,10 @@ public class CreateIndex {
 			out_p_weight.flush();
 			out_p_weight.close();
 
-			PrintStream out_adjacent_list = new PrintStream(new File(args[0] + "/graph_adjacent_list.txt"));
-			PrintStream out_transaction = new PrintStream(new File(args[0] + "/multi_transaction_set.txt"));
+			PrintStream out_adjacent_list = new PrintStream(new File(args[0]
+					+ "/graph_adjacent_list.txt"));
+			PrintStream out_transaction = new PrintStream(new File(args[0]
+					+ "/multi_transaction_set.txt"));
 
 			NeighborInfo[][] adjacentList = new NeighborInfo[NodeNum][];
 			int max_item_count = 0;
@@ -309,9 +331,11 @@ public class CreateIndex {
 
 					out_adjacent_list.print(curNeighborInfo.NeighborID + " ");
 					out_adjacent_list.print(curNeighborInfo.Label + " ");
-					double tmp_weight = ((predicateSalienceForwardMap.get(curNeighborInfo.Label).size()) * 1.0)
+					double tmp_weight = ((predicateSalienceForwardMap
+							.get(curNeighborInfo.Label).size()) * 1.0)
 							/ (adjacentList1.size());
-					curNeighborInfo.Distance = (int) Math.log((tmp_weight * amplifier));
+					curNeighborInfo.Distance = (int) Math
+							.log((tmp_weight * amplifier));
 					out_adjacent_list.print(curNeighborInfo.Distance + " ");
 					out_adjacent_list.print(curNeighborInfo.Direction + " ");
 					adjacentList[cur_id][i] = curNeighborInfo;
@@ -320,7 +344,8 @@ public class CreateIndex {
 						if (adjacentList[cur_id][i].Label != adjacentList[cur_id][i - 1].Label
 								|| adjacentList[cur_id][i].Direction != adjacentList[cur_id][i - 1].Direction) {
 
-							int tmp_item = LabelItemPosMap.get(adjacentList[cur_id][i - 1].Label);
+							int tmp_item = LabelItemPosMap
+									.get(adjacentList[cur_id][i - 1].Label);
 							if (label_count >= 1) {
 								if (adjacentList[cur_id][i - 1].Direction == 0) {
 									// out_transaction.print("item" + (tmp_item
@@ -363,7 +388,8 @@ public class CreateIndex {
 					i++;
 				}
 
-				int tmp_item = LabelItemPosMap.get(adjacentList[cur_id][adjacentList[cur_id].length - 1].Label);
+				int tmp_item = LabelItemPosMap
+						.get(adjacentList[cur_id][adjacentList[cur_id].length - 1].Label);
 				if (label_count >= 1) {
 					if (adjacentList[cur_id][adjacentList[cur_id].length - 1].Direction == 0) {
 						// out_transaction.print("item" + (tmp_item + 0) + " ");
@@ -415,20 +441,28 @@ public class CreateIndex {
 
 			adjacentList1.clear();
 
-			System.out.println("starting to " + "genenerate the structural index...");
+			System.out.println("starting to "
+					+ "genenerate the structural index...");
 			Date starIndexStartTime = new Date();
 			int support_delta = NodeNum / 100;
 			if (NodeNum < 1000) {
 				support_delta = NodeNum / 10;
 			}
-			// System.out.println(NodeNum);
+			System.out.println(NodeNum);
 
-			Process prc = Runtime.getRuntime()
-					.exec("cmd.exe /c start mine -f " + args[0] + "\\multi_transaction_set.txt -o " + args[0]
-							+ "\\fp.out -s " + support_delta + " -t " + NodeNum + " -i " + IDItemMap.size() + " -w "
+			System.out.println("cmd.exe /c start fp_growth.exe -f " + args[0]
+					+ "/multi_transaction_set.txt -o " + args[0]
+					+ "/fp.out -s " + support_delta + " -t " + NodeNum + " -i "
+					+ IDItemMap.size() + " -w " + max_item_count);
+			Process prc = Runtime.getRuntime().exec(
+					"cmd.exe /c start fp_growth.exe -f " + args[0]
+							+ "\\multi_transaction_set.txt -o " + args[0]
+							+ "\\fp.out -s " + support_delta + " -t " + NodeNum
+							+ " -i " + IDItemMap.size() + " -w "
 							+ max_item_count);
 
-			BufferedReader br_prc = new BufferedReader(new InputStreamReader(prc.getInputStream()));
+			BufferedReader br_prc = new BufferedReader(new InputStreamReader(
+					prc.getInputStream()));
 			String line = null;
 			while ((line = br_prc.readLine()) != null) {
 				System.out.println(line);
@@ -436,7 +470,8 @@ public class CreateIndex {
 
 			prc.waitFor();
 
-			InputStream in70 = new FileInputStream(new File(args[0] + "\\fp.out"));
+			InputStream in70 = new FileInputStream(new File(args[0]
+					+ "\\fp.out"));
 			Reader inr70 = new InputStreamReader(in70);
 			BufferedReader br70 = new BufferedReader(inr70);
 			TreeSet<Integer> frequentPropertySet = new TreeSet<Integer>();
@@ -486,14 +521,15 @@ public class CreateIndex {
 			}
 
 			br70.close();
-			// System.out.println("fpList.size() = " + fpList.size());
+			System.out.println("fpList.size() = " + fpList.size());
 
 			for (int i = 0; i < fpList.size(); i++) {
 				int[] curItemArr = fpList.get(i).getItemArr();
 
 				for (int j = 0; j < curItemArr.length; j++) {
 					if (!ItemFPListMap.containsKey(curItemArr[j])) {
-						ItemFPListMap.put(curItemArr[j], new ArrayList<Integer>());
+						ItemFPListMap.put(curItemArr[j],
+								new ArrayList<Integer>());
 					}
 					ItemFPListMap.get(curItemArr[j]).add(i);
 				}
@@ -503,6 +539,10 @@ public class CreateIndex {
 
 			for (int j = 0; j < NodeNum; j++) {
 
+				if (j % 10000 == 4) {
+					System.out.println("+++++++++++++" + j);
+				}
+
 				if (adjacentList[j] != null) {
 					label_count = 1;
 					for (int i = 0; i < adjacentList[j].length; i++) {
@@ -510,54 +550,78 @@ public class CreateIndex {
 							if (adjacentList[j][i].Label != adjacentList[j][i - 1].Label
 									|| adjacentList[j][i].Direction != adjacentList[j][i - 1].Direction) {
 
-								int tmp_item = LabelItemPosMap.get(adjacentList[j][i - 1].Label);
+								int tmp_item = LabelItemPosMap
+										.get(adjacentList[j][i - 1].Label);
 								if (label_count >= 1) {
 									if (adjacentList[j][i - 1].Direction == 0) {
 										if (ItemFPListMap.containsKey(tmp_item)) {
-											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item);
-											for (int k = 0; k < tmp_pos_list.size(); k++) {
-												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap
+													.get(tmp_item);
+											for (int k = 0; k < tmp_pos_list
+													.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList
+														.add(j);
 											}
 										}
 									} else {
-										if (ItemFPListMap.containsKey(tmp_item + 3)) {
-											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 3);
-											for (int k = 0; k < tmp_pos_list.size(); k++) {
-												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+										if (ItemFPListMap
+												.containsKey(tmp_item + 3)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap
+													.get(tmp_item + 3);
+											for (int k = 0; k < tmp_pos_list
+													.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList
+														.add(j);
 											}
 										}
 									}
 								}
 								if (label_count >= 2) {
 									if (adjacentList[j][i - 1].Direction == 0) {
-										if (ItemFPListMap.containsKey(tmp_item + 1)) {
-											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 1);
-											for (int k = 0; k < tmp_pos_list.size(); k++) {
-												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+										if (ItemFPListMap
+												.containsKey(tmp_item + 1)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap
+													.get(tmp_item + 1);
+											for (int k = 0; k < tmp_pos_list
+													.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList
+														.add(j);
 											}
 										}
 									} else {
-										if (ItemFPListMap.containsKey(tmp_item + 4)) {
-											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 4);
-											for (int k = 0; k < tmp_pos_list.size(); k++) {
-												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+										if (ItemFPListMap
+												.containsKey(tmp_item + 4)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap
+													.get(tmp_item + 4);
+											for (int k = 0; k < tmp_pos_list
+													.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList
+														.add(j);
 											}
 										}
 									}
 								}
 								if (label_count >= 3) {
 									if (adjacentList[j][i - 1].Direction == 0) {
-										if (ItemFPListMap.containsKey(tmp_item + 2)) {
-											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 2);
-											for (int k = 0; k < tmp_pos_list.size(); k++) {
-												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+										if (ItemFPListMap
+												.containsKey(tmp_item + 2)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap
+													.get(tmp_item + 2);
+											for (int k = 0; k < tmp_pos_list
+													.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList
+														.add(j);
 											}
 										}
 									} else {
-										if (ItemFPListMap.containsKey(tmp_item + 5)) {
-											ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 5);
-											for (int k = 0; k < tmp_pos_list.size(); k++) {
-												fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+										if (ItemFPListMap
+												.containsKey(tmp_item + 5)) {
+											ArrayList<Integer> tmp_pos_list = ItemFPListMap
+													.get(tmp_item + 5);
+											for (int k = 0; k < tmp_pos_list
+													.size(); k++) {
+												fpList.get(tmp_pos_list.get(k)).MatchingList
+														.add(j);
 											}
 										}
 									}
@@ -570,20 +634,25 @@ public class CreateIndex {
 						}
 					}
 
-					int tmp_item = LabelItemPosMap.get(adjacentList[j][adjacentList[j].length - 1].Label);
+					int tmp_item = LabelItemPosMap
+							.get(adjacentList[j][adjacentList[j].length - 1].Label);
 					if (label_count >= 1) {
 						if (adjacentList[j][adjacentList[j].length - 1].Direction == 0) {
 							if (ItemFPListMap.containsKey(tmp_item)) {
-								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item);
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap
+										.get(tmp_item);
 								for (int k = 0; k < tmp_pos_list.size(); k++) {
-									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+									fpList.get(tmp_pos_list.get(k)).MatchingList
+											.add(j);
 								}
 							}
 						} else {
 							if (ItemFPListMap.containsKey(tmp_item + 3)) {
-								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 3);
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap
+										.get(tmp_item + 3);
 								for (int k = 0; k < tmp_pos_list.size(); k++) {
-									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+									fpList.get(tmp_pos_list.get(k)).MatchingList
+											.add(j);
 								}
 							}
 						}
@@ -591,16 +660,20 @@ public class CreateIndex {
 					if (label_count >= 2) {
 						if (adjacentList[j][adjacentList[j].length - 1].Direction == 0) {
 							if (ItemFPListMap.containsKey(tmp_item + 1)) {
-								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 1);
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap
+										.get(tmp_item + 1);
 								for (int k = 0; k < tmp_pos_list.size(); k++) {
-									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+									fpList.get(tmp_pos_list.get(k)).MatchingList
+											.add(j);
 								}
 							}
 						} else {
 							if (ItemFPListMap.containsKey(tmp_item + 4)) {
-								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 4);
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap
+										.get(tmp_item + 4);
 								for (int k = 0; k < tmp_pos_list.size(); k++) {
-									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+									fpList.get(tmp_pos_list.get(k)).MatchingList
+											.add(j);
 								}
 							}
 						}
@@ -608,16 +681,20 @@ public class CreateIndex {
 					if (label_count >= 3) {
 						if (adjacentList[j][adjacentList[j].length - 1].Direction == 0) {
 							if (ItemFPListMap.containsKey(tmp_item + 2)) {
-								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 2);
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap
+										.get(tmp_item + 2);
 								for (int k = 0; k < tmp_pos_list.size(); k++) {
-									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+									fpList.get(tmp_pos_list.get(k)).MatchingList
+											.add(j);
 								}
 							}
 						} else {
 							if (ItemFPListMap.containsKey(tmp_item + 5)) {
-								ArrayList<Integer> tmp_pos_list = ItemFPListMap.get(tmp_item + 5);
+								ArrayList<Integer> tmp_pos_list = ItemFPListMap
+										.get(tmp_item + 5);
 								for (int k = 0; k < tmp_pos_list.size(); k++) {
-									fpList.get(tmp_pos_list.get(k)).MatchingList.add(j);
+									fpList.get(tmp_pos_list.get(k)).MatchingList
+											.add(j);
 								}
 							}
 						}
@@ -635,14 +712,16 @@ public class CreateIndex {
 				String aKey2 = fpList.get(i).getFPStr() + "\t";
 				byte[] aData2 = intArrayToBytes(fpList.get(i).MatchingList);
 
-				DatabaseEntry theKey2 = new DatabaseEntry(aKey2.getBytes("UTF-8"));
+				DatabaseEntry theKey2 = new DatabaseEntry(
+						aKey2.getBytes("UTF-8"));
 				DatabaseEntry theData2 = new DatabaseEntry(aData2);
 				myDatabase2.put(null, theKey2, theData2);
 
 			}
 			Date starIndexEndTime = new Date();
 			Date pivotStartTime = new Date();
-			System.out.println("starting to " + "genenerate the distance-based index...");
+			System.out.println("starting to "
+					+ "genenerate the distance-based index...");
 
 			KeyValuePair[] pivotArr = new KeyValuePair[NodeNum];
 			for (int k = 0; k < NodeNum; k++) {
@@ -661,7 +740,8 @@ public class CreateIndex {
 			byte[] candidateDist = new byte[NodeNum];
 			TreeSet<HeapNode> candidate = new TreeSet<HeapNode>();
 
-			PrintStream out_pivot = new PrintStream(new File(args[0] + "/pivot.txt"));
+			PrintStream out_pivot = new PrintStream(new File(args[0]
+					+ "/pivot.txt"));
 			for (int j = 0; j < PivotNum; j++) {
 				// PrintStream out = new PrintStream(new File(args[0]
 				// + "/Pivots/" + pivotArr[pivotArr.length - 1 - j].key));
@@ -673,8 +753,8 @@ public class CreateIndex {
 					continue;
 				}
 
-				out_pivot.println(
-						pivotArr[pivotArr.length - 1 - j].key + "\t" + pivotArr[pivotArr.length - 1 - j].value + "\t");
+				out_pivot.println(pivotArr[pivotArr.length - 1 - j].key + "\t"
+						+ pivotArr[pivotArr.length - 1 - j].value + "\t");
 				cur_id = 0;
 				int visited_num = 0, cur_dist = 0;
 				for (int i = 0; i < visited.length; i++) {
@@ -685,7 +765,8 @@ public class CreateIndex {
 				visited[sourceID] = 0;
 				visited_num++;
 				for (int i = 0; i < adjacentList[sourceID].length; i++) {
-					HeapNode curHeapNode = new HeapNode(adjacentList[sourceID][i].NeighborID);
+					HeapNode curHeapNode = new HeapNode(
+							adjacentList[sourceID][i].NeighborID);
 					curHeapNode.Dist = adjacentList[sourceID][i].Distance;
 					candidate.add(curHeapNode);
 					candidateDist[curHeapNode.VertexID] = (byte) curHeapNode.Dist;
@@ -705,25 +786,29 @@ public class CreateIndex {
 
 						if (candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] != -1) {
 							cur_dist = candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID];
-							if (adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist < cur_dist) {
-								HeapNode tempHeapNode = new HeapNode(adjacentList[curHeapNode.VertexID][i].NeighborID);
+							if (adjacentList[curHeapNode.VertexID][i].Distance
+									+ curHeapNode.Dist < cur_dist) {
+								HeapNode tempHeapNode = new HeapNode(
+										adjacentList[curHeapNode.VertexID][i].NeighborID);
 								tempHeapNode.Dist = cur_dist;
 								candidate.remove(tempHeapNode);
 
-								HeapNode newHeapNode = new HeapNode(adjacentList[curHeapNode.VertexID][i].NeighborID);
-								newHeapNode.Dist = adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist;
+								HeapNode newHeapNode = new HeapNode(
+										adjacentList[curHeapNode.VertexID][i].NeighborID);
+								newHeapNode.Dist = adjacentList[curHeapNode.VertexID][i].Distance
+										+ curHeapNode.Dist;
 								candidate.add(newHeapNode);
 
-								candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = (byte) (adjacentList[curHeapNode.VertexID][i].Distance
-										+ curHeapNode.Dist);
+								candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = (byte) (adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist);
 							}
 						} else {
-							HeapNode newHeapNode = new HeapNode(adjacentList[curHeapNode.VertexID][i].NeighborID);
-							newHeapNode.Dist = adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist;
+							HeapNode newHeapNode = new HeapNode(
+									adjacentList[curHeapNode.VertexID][i].NeighborID);
+							newHeapNode.Dist = adjacentList[curHeapNode.VertexID][i].Distance
+									+ curHeapNode.Dist;
 							candidate.add(newHeapNode);
 
-							candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = (byte) (adjacentList[curHeapNode.VertexID][i].Distance
-									+ curHeapNode.Dist);
+							candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = (byte) (adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist);
 						}
 					}
 				}
@@ -732,7 +817,8 @@ public class CreateIndex {
 				String aKey1 = "" + pivotArr[pivotArr.length - 1 - j].key;
 				// byte[] aData1 = intArrayToBytes(visited);
 
-				DatabaseEntry theKey1 = new DatabaseEntry(aKey1.getBytes("UTF-8"));
+				DatabaseEntry theKey1 = new DatabaseEntry(
+						aKey1.getBytes("UTF-8"));
 				DatabaseEntry theData1 = new DatabaseEntry(visited);
 				myDatabase1.put(null, theKey1, theData1);
 
@@ -757,10 +843,12 @@ public class CreateIndex {
 			}
 
 			Date pivotEndTime = new Date();
-			System.out.println(
-					"distanced-based index take " + (pivotEndTime.getTime() - pivotStartTime.getTime()) + " ms.");
-			System.out.println(
-					"structural index take " + (starIndexEndTime.getTime() - starIndexStartTime.getTime()) + " ms.");
+			System.out.println("distanced-based index take "
+					+ (pivotEndTime.getTime() - pivotStartTime.getTime())
+					+ " ms.");
+			System.out.println("structural index take "
+					+ (starIndexEndTime.getTime() - starIndexStartTime
+							.getTime()) + " ms.");
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block

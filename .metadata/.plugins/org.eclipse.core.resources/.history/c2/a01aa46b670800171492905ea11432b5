@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -188,14 +189,15 @@ public class CreateIndex {
 				}
 				objStr = objStr.trim();
 
-				cur_id = EntityIDMap.get(TermArr[0]);
+				head_id = EntityIDMap.get(TermArr[0]);
 				if (!objStr.startsWith("<")) {
-					entityLiteralArr[cur_id] += objStr + "\n";
+					entityLiteralArr[head_id] += objStr + "\n";
 				}
 
 				str = br.readLine();
 			}
 			br.close();
+			// System.out.println(count + " " + NodeNum);
 
 			File indexDir = new File(args[0] + "\\LuceneIndex");
 			Analyzer luceneAnalyzer = new StandardAnalyzer();
@@ -221,8 +223,6 @@ public class CreateIndex {
 
 			PrintStream out_entity = new PrintStream(new File(args[0] + "/entity_id_map.txt"));
 			Iterator<Entry<String, Integer>> iter32 = EntityIDMap.entrySet().iterator();
-			byte[] entityTagArr = new byte[NodeNum];
-			Arrays.fill(entityTagArr, (byte) 0);
 
 			count = 0;
 			while (iter32.hasNext()) {
@@ -231,13 +231,7 @@ public class CreateIndex {
 				count++;
 
 				Entry<String, Integer> e = iter32.next();
-				cur_id = e.getValue();
-				str = e.getKey();
-
-				out_entity.println(cur_id + "\t" + str);
-				if (str.startsWith("<")) {
-					entityTagArr[cur_id] = 1;
-				}
+				out_entity.println(e.getValue() + "\t" + e.getKey());
 			}
 
 			out_entity.flush();
@@ -421,12 +415,10 @@ public class CreateIndex {
 			if (NodeNum < 1000) {
 				support_delta = NodeNum / 10;
 			}
-			// System.out.println(NodeNum);
 
 			Process prc = Runtime.getRuntime()
-					.exec("cmd.exe /c start mine -f " + args[0] + "\\multi_transaction_set.txt -o " + args[0]
-							+ "\\fp.out -s " + support_delta + " -t " + NodeNum + " -i " + IDItemMap.size() + " -w "
-							+ max_item_count);
+					.exec("./mine -f " + args[0] + "/multi_transaction_set.txt -o " + args[0] + "/fp.out -s "
+							+ support_delta + " -t " + NodeNum + " -i " + IDItemMap.size() + " -w " + max_item_count);
 
 			BufferedReader br_prc = new BufferedReader(new InputStreamReader(prc.getInputStream()));
 			String line = null;
@@ -436,13 +428,14 @@ public class CreateIndex {
 
 			prc.waitFor();
 
-			InputStream in70 = new FileInputStream(new File(args[0] + "\\fp.out"));
+			InputStream in70 = new FileInputStream(new File(args[0] + "/fp.out"));
 			Reader inr70 = new InputStreamReader(in70);
 			BufferedReader br70 = new BufferedReader(inr70);
 			TreeSet<Integer> frequentPropertySet = new TreeSet<Integer>();
 			TreeSet<Integer> frequentItemSet = new TreeSet<Integer>();
 			TreeMap<Integer, ArrayList<Integer>> ItemFPListMap = new TreeMap<Integer, ArrayList<Integer>>();
 			ArrayList<FPInfo> fpList = new ArrayList<FPInfo>();
+			String itemStr = "", fpStr = "";
 			int cur_frequency = 0;
 
 			str = br70.readLine();
@@ -451,7 +444,7 @@ public class CreateIndex {
 				TermArr = str.split(":");
 
 				String[] TermArr1 = TermArr[0].split(" ");
-				TreeSet<Integer> curItemSet = new TreeSet<Integer>();
+				fpStr = "";
 				for (int i = 0; i < TermArr1.length; i++) {
 					TermArr1[i] = TermArr1[i].trim();
 					item_id = Integer.valueOf(TermArr1[i]);
@@ -459,49 +452,41 @@ public class CreateIndex {
 					frequentPropertySet.add(curItem.Label);
 					frequentItemSet.add(item_id);
 
-					curItemSet.add(item_id);
+					fpStr += item_id + " ";
 				}
-
+				fpStr = fpStr.trim();
 				TermArr[1] = TermArr[1].trim();
 				cur_frequency = Integer.valueOf(TermArr[1]);
 
-				FPInfo newFP = new FPInfo(curItemSet, cur_frequency);
-
-				if (fpList.size() == 0) {
+				FPInfo newFP = new FPInfo(fpStr, cur_frequency);
+				if (fpList.size() == 0 || !newFP.isSubFP(fpList.get(fpList.size() - 1))) {
 					fpList.add(newFP);
-				} else {
-					int fp_tag = 0;
-					for (int i = fpList.size() - 1; i >= 0; i--) {
-						if (newFP.isSubFP(fpList.get(i))) {
-							fp_tag = 1;
-							break;
-						}
-					}
-					if (fp_tag == 0) {
-						fpList.add(newFP);
-					}
 				}
 
 				str = br70.readLine();
 			}
 
 			br70.close();
-			// System.out.println("fpList.size() = " + fpList.size());
 
 			for (int i = 0; i < fpList.size(); i++) {
-				int[] curItemArr = fpList.get(i).getItemArr();
+				TermArr = fpList.get(i).FPStr.split(" ");
 
-				for (int j = 0; j < curItemArr.length; j++) {
-					if (!ItemFPListMap.containsKey(curItemArr[j])) {
-						ItemFPListMap.put(curItemArr[j], new ArrayList<Integer>());
+				for (int j = 0; j < TermArr.length; j++) {
+					item_id = Integer.valueOf(TermArr[j]);
+					if (!ItemFPListMap.containsKey(item_id)) {
+						ItemFPListMap.put(item_id, new ArrayList<Integer>());
 					}
-					ItemFPListMap.get(curItemArr[j]).add(i);
+					ItemFPListMap.get(item_id).add(i);
 				}
 			}
 
 			int label_count = 0;
 
 			for (int j = 0; j < NodeNum; j++) {
+
+				// if (j % 10000 == 4) {
+				// System.out.println("------------" + j);
+				// }
 
 				if (adjacentList[j] != null) {
 					label_count = 1;
@@ -632,7 +617,7 @@ public class CreateIndex {
 			for (int i = 0; i < fpList.size(); i++) {
 				// out_fp_list.println(fpList.get(i).FPStr + "\t"
 				// + fpList.get(i).MatchingList.toString());
-				String aKey2 = fpList.get(i).getFPStr() + "\t";
+				String aKey2 = fpList.get(i).FPStr + "\t";
 				byte[] aData2 = intArrayToBytes(fpList.get(i).MatchingList);
 
 				DatabaseEntry theKey2 = new DatabaseEntry(aKey2.getBytes("UTF-8"));
@@ -657,8 +642,8 @@ public class CreateIndex {
 			}
 			Arrays.sort(pivotArr);
 
-			byte[] visited = new byte[NodeNum];
-			byte[] candidateDist = new byte[NodeNum];
+			int[] visited = new int[NodeNum];
+			int[] candidateDist = new int[NodeNum];
 			TreeSet<HeapNode> candidate = new TreeSet<HeapNode>();
 
 			PrintStream out_pivot = new PrintStream(new File(args[0] + "/pivot.txt"));
@@ -667,20 +652,12 @@ public class CreateIndex {
 				// + "/Pivots/" + pivotArr[pivotArr.length - 1 - j].key));
 
 				int sourceID = pivotArr[pivotArr.length - 1 - j].key;
-
-				if (entityTagArr[sourceID] == 0) {
-					PivotNum++;
-					continue;
-				}
-
 				out_pivot.println(
 						pivotArr[pivotArr.length - 1 - j].key + "\t" + pivotArr[pivotArr.length - 1 - j].value + "\t");
 				cur_id = 0;
 				int visited_num = 0, cur_dist = 0;
-				for (int i = 0; i < visited.length; i++) {
-					visited[i] = -1;
-					candidateDist[i] = -1;
-				}
+				Arrays.fill(visited, -1);
+				Arrays.fill(candidateDist, -1);
 
 				visited[sourceID] = 0;
 				visited_num++;
@@ -688,19 +665,17 @@ public class CreateIndex {
 					HeapNode curHeapNode = new HeapNode(adjacentList[sourceID][i].NeighborID);
 					curHeapNode.Dist = adjacentList[sourceID][i].Distance;
 					candidate.add(curHeapNode);
-					candidateDist[curHeapNode.VertexID] = (byte) curHeapNode.Dist;
+					candidateDist[curHeapNode.VertexID] = curHeapNode.Dist;
 				}
 
 				while (candidate.size() != 0) {
 					HeapNode curHeapNode = candidate.pollFirst();
-					visited[curHeapNode.VertexID] = (byte) curHeapNode.Dist;
+					visited[curHeapNode.VertexID] = curHeapNode.Dist;
 					visited_num++;
 
 					for (int i = 0; i < adjacentList[curHeapNode.VertexID].length; i++) {
 						// int w = TermArr2[i];
 						if (visited[adjacentList[curHeapNode.VertexID][i].NeighborID] != -1)
-							continue;
-						if (entityTagArr[adjacentList[curHeapNode.VertexID][i].NeighborID] == 0)
 							continue;
 
 						if (candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] != -1) {
@@ -714,28 +689,32 @@ public class CreateIndex {
 								newHeapNode.Dist = adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist;
 								candidate.add(newHeapNode);
 
-								candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = (byte) (adjacentList[curHeapNode.VertexID][i].Distance
-										+ curHeapNode.Dist);
+								candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = adjacentList[curHeapNode.VertexID][i].Distance
+										+ curHeapNode.Dist;
 							}
 						} else {
 							HeapNode newHeapNode = new HeapNode(adjacentList[curHeapNode.VertexID][i].NeighborID);
 							newHeapNode.Dist = adjacentList[curHeapNode.VertexID][i].Distance + curHeapNode.Dist;
 							candidate.add(newHeapNode);
 
-							candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = (byte) (adjacentList[curHeapNode.VertexID][i].Distance
-									+ curHeapNode.Dist);
+							candidateDist[adjacentList[curHeapNode.VertexID][i].NeighborID] = adjacentList[curHeapNode.VertexID][i].Distance
+									+ curHeapNode.Dist;
 						}
 					}
 				}
 
 				// out.print(Arrays.toString(visited));
 				String aKey1 = "" + pivotArr[pivotArr.length - 1 - j].key;
-				// byte[] aData1 = intArrayToBytes(visited);
+				byte[] aData1 = intArrayToBytes(visited);
 
 				DatabaseEntry theKey1 = new DatabaseEntry(aKey1.getBytes("UTF-8"));
-				DatabaseEntry theData1 = new DatabaseEntry(visited);
+				DatabaseEntry theData1 = new DatabaseEntry(aData1);
 				myDatabase1.put(null, theKey1, theData1);
 
+				// System.out.println(j + "===========" + visited_num
+				// + "===========" + sourceID + "===========");
+				// out.flush();
+				// out.close();
 			}
 			out_pivot.flush();
 			out_pivot.close();
@@ -790,5 +769,38 @@ public class CreateIndex {
 		}
 
 		return b;
+	}
+
+	private static byte[] intArrayToBytes(int[] a) {
+		byte[] b = new byte[a.length + a.length + a.length + a.length];
+		int offset = 8, pos = 0;
+
+		for (int i = 0; i < a.length; i++) {
+			offset = 0;
+			pos = i + i + i + i;
+			for (int j = 0; j < 4; j++) {
+				b[pos + j] = (byte) (a[i] >> (24 - offset));
+				offset += 8;
+			}
+		}
+
+		return b;
+	}
+
+	private static int[] byteToInt2(byte[] b) {
+		int mask = 0xff, temp = 0;
+		int[] n = new int[b.length / 4];
+
+		for (int j = 0; j < n.length; j++) {
+			int offset = j + j + j + j;
+			for (int i = 0; i < 4; i++) {
+				n[j] <<= 8;
+				temp = b[offset + i] & mask;
+				n[j] |= temp;
+			}
+		}
+
+		return n;
+
 	}
 }
