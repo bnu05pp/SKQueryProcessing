@@ -424,7 +424,7 @@ public class CreateIndex {
 			// System.out.println(NodeNum);
 
 			Process prc = Runtime.getRuntime()
-					.exec("./mine -f " + args[0] + "\\multi_transaction_set.txt -o " + args[0]
+					.exec("cmd.exe /c start mine -f " + args[0] + "\\multi_transaction_set.txt -o " + args[0]
 							+ "\\fp.out -s " + support_delta + " -t " + NodeNum + " -i " + IDItemMap.size() + " -w "
 							+ max_item_count);
 
